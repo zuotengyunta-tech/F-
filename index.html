@@ -18,15 +18,12 @@
       padding: 15px;
       gap: 12px;
     }
-
-    /* 再生履歴サイドバー */
     #sidebar {
       width: 0; overflow: hidden; background: white; border-radius: 12px;
       box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: width 0.4s ease;
       height: fit-content; align-self: flex-start;
     }
     #sidebar.open { width: 340px; padding: 15px; }
-
     #toggleHistoryBtn {
       position: fixed; left: 15px; top: 25px;
       width: 32px; height: 32px;
@@ -34,16 +31,12 @@
       border: none; border-radius: 50%; font-size: 18px;
       cursor: pointer; z-index: 300;
     }
-
-    /* メインエリア */
     #main {
       flex: 1;
       display: flex;
       gap: 10px;
       width: 100%;
     }
-
-    /* プレイヤーエリア */
     #player-area {
       width: var(--player-width);
       height: var(--player-height);
@@ -57,7 +50,6 @@
     }
     #player { width: 100%; height: 100%; }
     iframe { width: 100%; height: 100%; border: none; }
-
     #player-horizontal-handle {
       position: absolute; top: 0; right: -4px; width: 9px; height: 100%;
       cursor: col-resize; z-index: 220;
@@ -66,26 +58,19 @@
       position: absolute; bottom: 0; left: 0; width: 100%; height: 8px;
       background: #ddd; cursor: row-resize; z-index: 230;
     }
-    #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
-
     #resize-bar {
       width: 6px; background: #ddd; cursor: col-resize; z-index: 100;
     }
-    #resize-bar:hover, #resize-bar.active { background: #ff0000; }
+    #resize-bar:hover, #resize-bar.active,
+    #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
 
-    /* サムネイルエリア（右端まで詰め・4列） */
     #thumbnail-area {
       flex: 1;
       display: flex;
       flex-direction: column;
       max-height: 100vh;
     }
-    h2 { 
-      margin: 0 0 10px 0; 
-      text-align: center; 
-      font-size: 26px; 
-      color: #333;
-    }
+    h2 { margin: 0 0 10px 0; text-align: center; font-size: 26px; color: #333; }
     #videos-wrapper {
       flex: 1;
       overflow-y: auto;
@@ -97,12 +82,12 @@
       gap: 14px;
       width: 100%;
     }
-
     .video-item {
       background: white;
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
     }
     .video-item:hover { transform: translateY(-4px); }
     .thumbnail { position: relative; cursor: pointer; }
@@ -110,20 +95,21 @@
       width: 100%;
       aspect-ratio: 16 / 9;
       object-fit: cover;
+      display: block;
     }
     .play-btn {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       width: 54px; height: 54px;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.75);
       color: white;
       border-radius: 50%;
       display: grid; place-items: center;
       font-size: 28px;
+      pointer-events: none;
     }
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
 
-    /* 右下ボタン */
     .fixed-buttons {
       position: fixed;
       right: 25px;
@@ -148,27 +134,19 @@
 </head>
 <body>
   <button id="toggleHistoryBtn">›</button>
-
   <div id="sidebar">
-    <div id="sidebar-header">
-      <h3>再生履歴</h3>
-      <button id="clearHistoryBtn">全削除</button>
-    </div>
+    <h3>再生履歴</h3>
+    <button id="clearHistoryBtn">全削除</button>
     <div id="history"></div>
   </div>
 
   <div id="main">
-    <!-- 左：プレイヤー -->
     <div id="player-area">
       <div id="player"></div>
       <div id="player-horizontal-handle"></div>
       <div id="vertical-resize-bar"></div>
     </div>
-
-    <!-- 左右リサイズバー -->
     <div id="resize-bar"></div>
-
-    <!-- 右：サムネイル一覧 -->
     <div id="thumbnail-area">
       <h2>Frann｜動画一覧</h2>
       <div id="videos-wrapper">
@@ -180,178 +158,204 @@
 
   <div class="fixed-buttons">
     <button id="jumpBtn" class="fixed-btn">▶ 再生中へ戻る</button>
-    <button id="topBtn" class="fixed-btn">↑ サムネイル一番上に戻る</button>
+    <button id="topBtn" class="fixed-btn">↑ 一番上に戻る</button>
   </div>
 
 <script>
   const API_KEY = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const CHANNEL_ID = "UCqRV_ZIQhVKfxG1_WkNiRbg";
+  const CACHE_KEY = "frann_videos_cache";
+  const CACHE_TIME = 1000 * 60 * 60 * 6; // 6時間
 
-  const sidebar = document.getElementById("sidebar");
-  const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
-  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-  const historyBox = document.getElementById("history");
-  const playerArea = document.getElementById("player-area");
-  const player = document.getElementById("player");
-  const resizeBar = document.getElementById("resize-bar");
-  const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
-  const verticalResizeBar = document.getElementById("vertical-resize-bar");
-  const videosContainer = document.getElementById("videos");
-  const videosWrapper = document.getElementById("videos-wrapper");
-  const loadingEl = document.getElementById("loading");
-  const jumpBtn = document.getElementById("jumpBtn");
-  const topBtn = document.getElementById("topBtn");
-
+  let allVideos = [];
   let currentActive = null;
   let currentVideoEl = null;
-  let isHistoryOpen = false;
 
-  // 履歴機能
-  function loadHistory() { return JSON.parse(localStorage.getItem("frann_history") || "[]"); }
-  function saveHistory(video) {
-    let history = loadHistory();
-    history = history.filter(item => item.id !== video.id);
-    history.unshift(video);
-    history = history.slice(0, 30);
-    localStorage.setItem("frann_history", JSON.stringify(history));
+  const els = {
+    sidebar: document.getElementById("sidebar"),
+    toggleBtn: document.getElementById("toggleHistoryBtn"),
+    clearBtn: document.getElementById("clearHistoryBtn"),
+    history: document.getElementById("history"),
+    player: document.getElementById("player"),
+    videos: document.getElementById("videos"),
+    loading: document.getElementById("loading"),
+    wrapper: document.getElementById("videos-wrapper"),
+    jumpBtn: document.getElementById("jumpBtn"),
+    topBtn: document.getElementById("topBtn")
+  };
+
+  // ==================== 履歴 ====================
+  const loadHistory = () => JSON.parse(localStorage.getItem("frann_history") || "[]");
+  const saveHistory = (video) => {
+    let h = loadHistory().filter(v => v.id !== video.id);
+    h.unshift(video);
+    localStorage.setItem("frann_history", JSON.stringify(h.slice(0, 30)));
     renderHistory();
-  }
-  function renderHistory() {
+  };
+  const renderHistory = () => {
     const history = loadHistory();
-    historyBox.innerHTML = history.length === 0
-      ? '<p style="color:#888; text-align:center; padding:30px 10px;">履歴はありません</p>'
-      : "";
-    history.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "history-item";
-      div.textContent = item.title;
-      div.onclick = () => document.querySelector(`[data-id="${item.id}"]`)?.scrollIntoView({behavior:"smooth", block:"center"});
-      historyBox.appendChild(div);
-    });
-  }
-  function clearHistory() {
-    if (confirm("再生履歴をすべて削除しますか？")) {
-      localStorage.removeItem("frann_history");
-      renderHistory();
-    }
-  }
-  function toggleHistory() {
-    isHistoryOpen = !isHistoryOpen;
-    sidebar.classList.toggle("open", isHistoryOpen);
-    toggleHistoryBtn.textContent = isHistoryOpen ? "‹" : "›";
-  }
+    els.history.innerHTML = history.length === 0 
+      ? '<p style="color:#888;text-align:center;padding:30px 10px;">履歴はありません</p>'
+      : history.map(item => 
+          `<div class="history-item" data-id="${item.id}">${item.title}</div>`
+        ).join('');
+  };
 
-  // 動画再生
-  function playVideo(videoId, title, videoItemElement) {
-    player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  // ==================== 動画再生 ====================
+  const playVideo = (videoId, title, el) => {
+    els.player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     if (currentActive) currentActive.classList.remove("active");
-    videoItemElement.classList.add("active");
-    currentActive = videoItemElement;
-    currentVideoEl = videoItemElement;
+    el.classList.add("active");
+    currentActive = el;
+    currentVideoEl = el;
     saveHistory({ id: videoId, title });
-  }
+  };
 
-  // チャンネル全動画取得
-  async function getUploadsPlaylistId() {
-    const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.items[0].contentDetails.relatedPlaylists.uploads;
-  }
+  // ==================== データ取得（高速化） ====================
+  async function getAllVideos() {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_TIME) {
+        return data;
+      }
+    }
 
-  async function getAllVideos(playlistId) {
-    let videos = [];
-    let token = "";
+    els.loading.textContent = "チャンネル動画取得中... (初回は少し時間がかかります)";
+
+    const getUploadsId = async () => {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`);
+      const json = await res.json();
+      return json.items[0].contentDetails.relatedPlaylists.uploads;
+    };
+
+    const playlistId = await getUploadsId();
+    let videos = [], token = "";
+
     while (true) {
-      const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${API_KEY}${token ? `&pageToken=${token}` : ""}`;
-      const res = await fetch(url);
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${API_KEY}${token ? `&pageToken=${token}` : ""}`
+      );
       const data = await res.json();
       if (data.items) videos.push(...data.items);
       if (!data.nextPageToken) break;
       token = data.nextPageToken;
     }
-    return videos;
+
+    const result = videos.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
+
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data: result, timestamp: Date.now() }));
+    return result;
   }
 
-  function renderVideos(videos) {
-    videosContainer.innerHTML = "";
-    videos.forEach(v => {
-      const snip = v.snippet;
-      const videoId = snip.resourceId.videoId;
-      if (!videoId) return;
-      const thumb = snip.thumbnails?.medium?.url || snip.thumbnails?.high?.url || "";
-      const title = snip.title;
+  // ==================== レンダリング（インクリメンタル） ====================
+  function renderVideoChunk(videos, start) {
+    const fragment = document.createDocumentFragment();
+    const end = Math.min(start + 50, videos.length);
 
+    for (let i = start; i < end; i++) {
+      const v = videos[i].snippet;
+      const videoId = v.resourceId.videoId;
+      if (!videoId) continue;
+
+      const thumb = v.thumbnails?.medium?.url || v.thumbnails?.high?.url || "";
       const div = document.createElement("div");
       div.className = "video-item";
       div.dataset.id = videoId;
       div.innerHTML = `
         <div class="thumbnail">
-          <img src="${thumb}" loading="lazy">
+          <img src="${thumb}" loading="lazy" decoding="async">
           <div class="play-btn">▶</div>
         </div>
-        <p style="margin:10px; font-size:14px; line-height:1.4;">${title}</p>
+        <p style="margin:10px; font-size:14px; line-height:1.4;">${v.title}</p>
       `;
-      div.querySelector('.play-btn').onclick = (e) => {
-        e.stopPropagation();
-        playVideo(videoId, title, div);
-      };
-      videosContainer.appendChild(div);
-    });
-    loadingEl.style.display = "none";
+
+      div.addEventListener("click", (e) => {
+        if (e.target.closest('.play-btn')) {
+          playVideo(videoId, v.title, div);
+        }
+      });
+
+      fragment.appendChild(div);
+    }
+    els.videos.appendChild(fragment);
   }
 
-  // リサイズ機能
+  async function main() {
+    try {
+      allVideos = await getAllVideos();
+      els.loading.style.display = "none";
+
+      // 最初の50件だけ即時レンダリング
+      renderVideoChunk(allVideos, 0);
+
+      // スクロールで追加読み込み
+      let loaded = 50;
+      els.wrapper.addEventListener("scroll", () => {
+        if (els.wrapper.scrollTop + els.wrapper.clientHeight > els.wrapper.scrollHeight - 300 && loaded < allVideos.length) {
+          renderVideoChunk(allVideos, loaded);
+          loaded += 50;
+        }
+      });
+
+      renderHistory();
+    } catch (e) {
+      els.loading.innerHTML = `<span style="color:red;">取得エラー</span>`;
+      console.error(e);
+    }
+  }
+
+  // ==================== リサイズ ====================
   function initResize() {
-    let isH = false, isV = false;
+    let isHorizontal = false, isVertical = false;
 
-    const startH = () => { isH = true; document.body.style.cursor = "col-resize"; };
-    resizeBar.addEventListener("mousedown", startH);
-    playerHorizontalHandle.addEventListener("mousedown", startH);
+    const start = (e, vertical) => {
+      if (vertical) isVertical = true;
+      else isHorizontal = true;
+      document.body.style.cursor = vertical ? "row-resize" : "col-resize";
+    };
 
-    verticalResizeBar.addEventListener("mousedown", () => { isV = true; document.body.style.cursor = "row-resize"; });
+    document.getElementById("resize-bar").addEventListener("mousedown", start);
+    document.getElementById("player-horizontal-handle").addEventListener("mousedown", start);
+    document.getElementById("vertical-resize-bar").addEventListener("mousedown", () => start(null, true));
 
     document.addEventListener("mousemove", (e) => {
-      if (isH) {
+      if (isHorizontal) {
         const rect = document.getElementById("main").getBoundingClientRect();
         let w = ((e.clientX - rect.left) / rect.width) * 100;
         w = Math.max(28, Math.min(72, w));
         document.documentElement.style.setProperty("--player-width", w + "%");
       }
-      if (isV) {
-        const rect = playerArea.getBoundingClientRect();
+      if (isVertical) {
+        const rect = document.getElementById("player-area").getBoundingClientRect();
         let h = Math.max(300, Math.min(window.innerHeight * 0.93, e.clientY - rect.top));
         document.documentElement.style.setProperty("--player-height", (h / window.innerHeight * 100) + "vh");
       }
     });
 
     document.addEventListener("mouseup", () => {
-      isH = isV = false;
+      isHorizontal = isVertical = false;
       document.body.style.cursor = "default";
     });
   }
 
-  // メイン処理
-  async function main() {
-    try {
-      loadingEl.textContent = "チャンネル動画を読み込み中...";
-      const playlistId = await getUploadsPlaylistId();
-      let videos = await getAllVideos(playlistId);
-      videos.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
-      renderVideos(videos);
+  // ==================== イベント ====================
+  els.toggleBtn.addEventListener("click", () => {
+    els.sidebar.classList.toggle("open");
+    els.toggleBtn.textContent = els.sidebar.classList.contains("open") ? "‹" : "›";
+  });
+
+  els.clearBtn.addEventListener("click", () => {
+    if (confirm("再生履歴をすべて削除しますか？")) {
+      localStorage.removeItem("frann_history");
       renderHistory();
-    } catch (e) {
-      loadingEl.innerHTML = `<span style="color:red;">取得エラー</span>`;
-      console.error(e);
     }
-  }
+  });
 
-  // イベント設定
-  toggleHistoryBtn.addEventListener("click", toggleHistory);
-  clearHistoryBtn.addEventListener("click", clearHistory);
-  jumpBtn.onclick = () => currentVideoEl?.scrollIntoView({behavior:"smooth", block:"center"});
-  topBtn.onclick = () => videosWrapper.scrollTo({top:0, behavior:"smooth"});
+  els.jumpBtn.onclick = () => currentVideoEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+  els.topBtn.onclick = () => els.wrapper.scrollTo({ top: 0, behavior: "smooth" });
 
+  // 起動
   initResize();
   main();
 </script>
