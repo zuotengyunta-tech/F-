@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Frann｜動画一覧</title>
+  <title>Frann｜Fラン大学就職チャンネル 全動画一覧</title>
   <style>
     :root {
       --player-width: 46%;
@@ -18,6 +18,7 @@
       padding: 15px;
       gap: 12px;
     }
+    /* 再生履歴サイドバー */
     #sidebar {
       width: 0; overflow: hidden; background: white; border-radius: 12px;
       box-shadow: 2px 0 10px rgba(0,0,0,0.1); transition: width 0.4s ease;
@@ -31,12 +32,14 @@
       border: none; border-radius: 50%; font-size: 18px;
       cursor: pointer; z-index: 300;
     }
+    /* メインエリア */
     #main {
       flex: 1;
       display: flex;
       gap: 10px;
       width: 100%;
     }
+    /* プレイヤーエリア */
     #player-area {
       width: var(--player-width);
       height: var(--player-height);
@@ -64,13 +67,19 @@
     #resize-bar:hover, #resize-bar.active,
     #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
 
+    /* サムネイルエリア */
     #thumbnail-area {
       flex: 1;
       display: flex;
       flex-direction: column;
       max-height: 100vh;
     }
-    h2 { margin: 0 0 10px 0; text-align: center; font-size: 26px; color: #333; }
+    h2 {
+      margin: 0 0 10px 0;
+      text-align: center;
+      font-size: 26px;
+      color: #333;
+    }
     #videos-wrapper {
       flex: 1;
       overflow-y: auto;
@@ -95,21 +104,20 @@
       width: 100%;
       aspect-ratio: 16 / 9;
       object-fit: cover;
-      display: block;
     }
     .play-btn {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       width: 54px; height: 54px;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.85);
       color: white;
       border-radius: 50%;
       display: grid; place-items: center;
       font-size: 28px;
-      pointer-events: none;
     }
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
 
+    /* 右下ボタン */
     .fixed-buttons {
       position: fixed;
       right: 25px;
@@ -135,23 +143,27 @@
 <body>
   <button id="toggleHistoryBtn">›</button>
   <div id="sidebar">
-    <h3>再生履歴</h3>
-    <button id="clearHistoryBtn">全削除</button>
+    <div id="sidebar-header">
+      <h3>再生履歴</h3>
+      <button id="clearHistoryBtn">全削除</button>
+    </div>
     <div id="history"></div>
   </div>
-
   <div id="main">
+    <!-- 左：プレイヤー -->
     <div id="player-area">
       <div id="player"></div>
       <div id="player-horizontal-handle"></div>
       <div id="vertical-resize-bar"></div>
     </div>
+    <!-- リサイズバー -->
     <div id="resize-bar"></div>
+    <!-- 右：動画一覧 -->
     <div id="thumbnail-area">
-      <h2>Frann｜動画一覧</h2>
+      <h2>Frann｜Fラン大学就職チャンネル 全動画</h2>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">動画を読み込み中...</div>
+        <div id="loading">動画を読み込み中...（最大約1000本）</div>
       </div>
     </div>
   </div>
@@ -162,200 +174,162 @@
   </div>
 
 <script>
-  const API_KEY = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
+  const API_KEY = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";  // 必要に応じて自分のキーに変更可
   const CHANNEL_ID = "UCqRV_ZIQhVKfxG1_WkNiRbg";
-  const CACHE_KEY = "frann_videos_cache";
-  const CACHE_TIME = 1000 * 60 * 60 * 6; // 6時間
 
-  let allVideos = [];
+  // 以下は元のコードをほぼそのまま使用（一部微調整）
+  const sidebar = document.getElementById("sidebar");
+  const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
+  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  const historyBox = document.getElementById("history");
+  const playerArea = document.getElementById("player-area");
+  const player = document.getElementById("player");
+  const resizeBar = document.getElementById("resize-bar");
+  const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
+  const verticalResizeBar = document.getElementById("vertical-resize-bar");
+  const videosContainer = document.getElementById("videos");
+  const loadingEl = document.getElementById("loading");
+  const jumpBtn = document.getElementById("jumpBtn");
+  const topBtn = document.getElementById("topBtn");
+
   let currentActive = null;
   let currentVideoEl = null;
+  let isHistoryOpen = false;
 
-  const els = {
-    sidebar: document.getElementById("sidebar"),
-    toggleBtn: document.getElementById("toggleHistoryBtn"),
-    clearBtn: document.getElementById("clearHistoryBtn"),
-    history: document.getElementById("history"),
-    player: document.getElementById("player"),
-    videos: document.getElementById("videos"),
-    loading: document.getElementById("loading"),
-    wrapper: document.getElementById("videos-wrapper"),
-    jumpBtn: document.getElementById("jumpBtn"),
-    topBtn: document.getElementById("topBtn")
-  };
-
-  // ==================== 履歴 ====================
-  const loadHistory = () => JSON.parse(localStorage.getItem("frann_history") || "[]");
-  const saveHistory = (video) => {
-    let h = loadHistory().filter(v => v.id !== video.id);
-    h.unshift(video);
-    localStorage.setItem("frann_history", JSON.stringify(h.slice(0, 30)));
+  function loadHistory() { return JSON.parse(localStorage.getItem("frann_history") || "[]"); }
+  function saveHistory(video) {
+    let history = loadHistory();
+    history = history.filter(item => item.id !== video.id);
+    history.unshift(video);
+    history = history.slice(0, 30);
+    localStorage.setItem("frann_history", JSON.stringify(history));
     renderHistory();
-  };
-  const renderHistory = () => {
+  }
+  function renderHistory() {
     const history = loadHistory();
-    els.history.innerHTML = history.length === 0 
-      ? '<p style="color:#888;text-align:center;padding:30px 10px;">履歴はありません</p>'
-      : history.map(item => 
-          `<div class="history-item" data-id="${item.id}">${item.title}</div>`
-        ).join('');
-  };
-
-  // ==================== 動画再生 ====================
-  const playVideo = (videoId, title, el) => {
-    els.player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    if (currentActive) currentActive.classList.remove("active");
-    el.classList.add("active");
-    currentActive = el;
-    currentVideoEl = el;
-    saveHistory({ id: videoId, title });
-  };
-
-  // ==================== データ取得（高速化） ====================
-  async function getAllVideos() {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < CACHE_TIME) {
-        return data;
-      }
+    historyBox.innerHTML = history.length === 0
+      ? '<p style="color:#888; text-align:center; padding:30px 10px;">履歴はありません</p>'
+      : "";
+    history.forEach(item => {
+      const div = document.createElement("div");
+      div.style.padding = "10px";
+      div.style.borderBottom = "1px solid #eee";
+      div.style.cursor = "pointer";
+      div.textContent = item.title;
+      div.onclick = () => document.querySelector(`[data-id="${item.id}"]`)?.scrollIntoView({behavior:"smooth", block:"center"});
+      historyBox.appendChild(div);
+    });
+  }
+  function clearHistory() {
+    if (confirm("再生履歴をすべて削除しますか？")) {
+      localStorage.removeItem("frann_history");
+      renderHistory();
     }
+  }
+  function toggleHistory() {
+    isHistoryOpen = !isHistoryOpen;
+    sidebar.classList.toggle("open", isHistoryOpen);
+    toggleHistoryBtn.textContent = isHistoryOpen ? "‹" : "›";
+  }
 
-    els.loading.textContent = "チャンネル動画取得中... (初回は少し時間がかかります)";
+  function playVideo(videoId, title, videoItemElement) {
+    player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    if (currentActive) currentActive.classList.remove("active");
+    videoItemElement.classList.add("active");
+    currentActive = videoItemElement;
+    currentVideoEl = videoItemElement;
+    saveHistory({ id: videoId, title });
+  }
 
-    const getUploadsId = async () => {
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`);
-      const json = await res.json();
-      return json.items[0].contentDetails.relatedPlaylists.uploads;
-    };
+  async function getUploadsPlaylistId() {
+    const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${CHANNEL_ID}&key=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.items[0].contentDetails.relatedPlaylists.uploads;
+  }
 
-    const playlistId = await getUploadsId();
-    let videos = [], token = "";
-
+  async function getAllVideos(playlistId) {
+    let videos = [];
+    let token = "";
     while (true) {
-      const res = await fetch(
-        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${API_KEY}${token ? `&pageToken=${token}` : ""}`
-      );
+      const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${API_KEY}${token ? `&pageToken=${token}` : ""}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.items) videos.push(...data.items);
       if (!data.nextPageToken) break;
       token = data.nextPageToken;
     }
-
-    const result = videos.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
-
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ data: result, timestamp: Date.now() }));
-    return result;
+    return videos;
   }
 
-  // ==================== レンダリング（インクリメンタル） ====================
-  function renderVideoChunk(videos, start) {
-    const fragment = document.createDocumentFragment();
-    const end = Math.min(start + 50, videos.length);
-
-    for (let i = start; i < end; i++) {
-      const v = videos[i].snippet;
-      const videoId = v.resourceId.videoId;
-      if (!videoId) continue;
-
-      const thumb = v.thumbnails?.medium?.url || v.thumbnails?.high?.url || "";
+  function renderVideos(videos) {
+    videosContainer.innerHTML = "";
+    videos.forEach(v => {
+      const snip = v.snippet;
+      const videoId = snip.resourceId.videoId;
+      if (!videoId) return;
+      const thumb = snip.thumbnails?.medium?.url || snip.thumbnails?.high?.url || "";
+      const title = snip.title;
       const div = document.createElement("div");
       div.className = "video-item";
       div.dataset.id = videoId;
       div.innerHTML = `
         <div class="thumbnail">
-          <img src="${thumb}" loading="lazy" decoding="async">
+          <img src="${thumb}" loading="lazy">
           <div class="play-btn">▶</div>
         </div>
-        <p style="margin:10px; font-size:14px; line-height:1.4;">${v.title}</p>
+        <p style="margin:10px; font-size:14px; line-height:1.4; padding-bottom:8px;">${title}</p>
       `;
-
-      div.addEventListener("click", (e) => {
-        if (e.target.closest('.play-btn')) {
-          playVideo(videoId, v.title, div);
-        }
-      });
-
-      fragment.appendChild(div);
-    }
-    els.videos.appendChild(fragment);
+      div.querySelector('.thumbnail').onclick = () => playVideo(videoId, title, div);
+      videosContainer.appendChild(div);
+    });
+    loadingEl.style.display = "none";
   }
 
-  async function main() {
-    try {
-      allVideos = await getAllVideos();
-      els.loading.style.display = "none";
-
-      // 最初の50件だけ即時レンダリング
-      renderVideoChunk(allVideos, 0);
-
-      // スクロールで追加読み込み
-      let loaded = 50;
-      els.wrapper.addEventListener("scroll", () => {
-        if (els.wrapper.scrollTop + els.wrapper.clientHeight > els.wrapper.scrollHeight - 300 && loaded < allVideos.length) {
-          renderVideoChunk(allVideos, loaded);
-          loaded += 50;
-        }
-      });
-
-      renderHistory();
-    } catch (e) {
-      els.loading.innerHTML = `<span style="color:red;">取得エラー</span>`;
-      console.error(e);
-    }
-  }
-
-  // ==================== リサイズ ====================
   function initResize() {
-    let isHorizontal = false, isVertical = false;
-
-    const start = (e, vertical) => {
-      if (vertical) isVertical = true;
-      else isHorizontal = true;
-      document.body.style.cursor = vertical ? "row-resize" : "col-resize";
-    };
-
-    document.getElementById("resize-bar").addEventListener("mousedown", start);
-    document.getElementById("player-horizontal-handle").addEventListener("mousedown", start);
-    document.getElementById("vertical-resize-bar").addEventListener("mousedown", () => start(null, true));
+    let isH = false, isV = false;
+    const startH = () => { isH = true; document.body.style.cursor = "col-resize"; };
+    resizeBar.addEventListener("mousedown", startH);
+    playerHorizontalHandle.addEventListener("mousedown", startH);
+    verticalResizeBar.addEventListener("mousedown", () => { isV = true; document.body.style.cursor = "row-resize"; });
 
     document.addEventListener("mousemove", (e) => {
-      if (isHorizontal) {
+      if (isH) {
         const rect = document.getElementById("main").getBoundingClientRect();
         let w = ((e.clientX - rect.left) / rect.width) * 100;
         w = Math.max(28, Math.min(72, w));
         document.documentElement.style.setProperty("--player-width", w + "%");
       }
-      if (isVertical) {
-        const rect = document.getElementById("player-area").getBoundingClientRect();
+      if (isV) {
+        const rect = playerArea.getBoundingClientRect();
         let h = Math.max(300, Math.min(window.innerHeight * 0.93, e.clientY - rect.top));
         document.documentElement.style.setProperty("--player-height", (h / window.innerHeight * 100) + "vh");
       }
     });
-
     document.addEventListener("mouseup", () => {
-      isHorizontal = isVertical = false;
+      isH = isV = false;
       document.body.style.cursor = "default";
     });
   }
 
-  // ==================== イベント ====================
-  els.toggleBtn.addEventListener("click", () => {
-    els.sidebar.classList.toggle("open");
-    els.toggleBtn.textContent = els.sidebar.classList.contains("open") ? "‹" : "›";
-  });
-
-  els.clearBtn.addEventListener("click", () => {
-    if (confirm("再生履歴をすべて削除しますか？")) {
-      localStorage.removeItem("frann_history");
+  async function main() {
+    try {
+      loadingEl.textContent = "全動画を取得中...（少し時間がかかります）";
+      const playlistId = await getUploadsPlaylistId();
+      let videos = await getAllVideos(playlistId);
+      videos.sort((a, b) => new Date(b.snippet.publishedAt) - new Date(a.snippet.publishedAt));
+      renderVideos(videos);
       renderHistory();
+    } catch (e) {
+      loadingEl.innerHTML = `<span style="color:red;">取得エラー<br>APIキーの制限かネットワークを確認してください</span>`;
+      console.error(e);
     }
-  });
+  }
 
-  els.jumpBtn.onclick = () => currentVideoEl?.scrollIntoView({ behavior: "smooth", block: "center" });
-  els.topBtn.onclick = () => els.wrapper.scrollTo({ top: 0, behavior: "smooth" });
-
-  // 起動
+  toggleHistoryBtn.addEventListener("click", toggleHistory);
+  clearHistoryBtn.addEventListener("click", clearHistory);
+  jumpBtn.onclick = () => currentVideoEl?.scrollIntoView({behavior:"smooth", block:"center"});
+  topBtn.onclick = () => document.getElementById("videos-wrapper").scrollTo({top:0, behavior:"smooth"});
   initResize();
   main();
 </script>
