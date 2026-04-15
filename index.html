@@ -250,6 +250,9 @@
   // === 設定 ===
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
+  
+  // ★★★ 履歴を独立させるためのキー（ここだけ変更） ★★★
+  const historyKey = "frann_history_fラン就職チャンネル";
 
   // === DOM ===
   const sidebar = document.getElementById("sidebar");
@@ -272,14 +275,16 @@
   let currentVideoEl = null;
   let isHistoryOpen = false;
 
-  // ====================== 履歴機能 ======================
-  function loadHistory() { return JSON.parse(localStorage.getItem("frann_history") || "[]"); }
+  // ====================== 履歴機能（独立化済み） ======================
+  function loadHistory() { 
+    return JSON.parse(localStorage.getItem(historyKey) || "[]"); 
+  }
   function saveHistory(video) {
     let history = loadHistory();
     history = history.filter(item => item.id !== video.id);
     history.unshift(video);
     history = history.slice(0, 30);
-    localStorage.setItem("frann_history", JSON.stringify(history));
+    localStorage.setItem(historyKey, JSON.stringify(history));
     renderHistory();
   }
   function renderHistory() {
@@ -296,8 +301,8 @@
     });
   }
   function clearHistory() {
-    if (confirm("再生履歴をすべて削除しますか？")) {
-      localStorage.removeItem("frann_history");
+    if (confirm("このチャンネルの再生履歴をすべて削除しますか？")) {
+      localStorage.removeItem(historyKey);
       renderHistory();
     }
   }
@@ -355,13 +360,11 @@
   function renderAllVideos(items) {
     videosContainer.innerHTML = "";
     const fragment = document.createDocumentFragment();
-   
     items.forEach(item => {
       const title = item.snippet.title;
       const videoId = item.snippet.resourceId?.videoId;
       if (!videoId) return;
       const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
-
       const div = document.createElement("div");
       div.className = "video-item";
       div.dataset.id = videoId;
@@ -373,23 +376,17 @@
         </div>
         <div class="video-title">${title}</div>
       `;
-
-      // 全体クリックで再生
       div.onclick = (e) => {
         if (!e.target.classList.contains('copy-btn')) {
           playVideo(videoId, title, div);
         }
       };
-
-      // リンクコピーボタン
       div.querySelector('.copy-btn').onclick = (e) => {
         e.stopPropagation();
         copyLink(videoId);
       };
-
       fragment.appendChild(div);
     });
-   
     videosContainer.appendChild(fragment);
     loadingEl.style.display = "none";
   }
