@@ -161,20 +161,24 @@
       font-size: 32px;
     }
     .play-btn:hover { background: #ff0000; }
+
+    /* リンクコピーボタン - 一番右下・小さめ */
     .copy-btn {
       position: absolute;
-      bottom: 8px;
-      right: 8px;
-      background: rgba(0,0,0,0.7);
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.8);
       color: white;
       border: none;
-      padding: 4px 8px;
-      font-size: 12px;
-      border-radius: 4px;
+      padding: 3px 7px;
+      font-size: 11px;
+      border-radius: 3px;
       cursor: pointer;
-      z-index: 10;
+      z-index: 20;
       opacity: 0;
       transition: all 0.2s;
+      white-space: nowrap;
+      line-height: 1;
     }
     .video-item:hover .copy-btn {
       opacity: 1;
@@ -182,6 +186,7 @@
     .copy-btn:hover {
       background: #ff0000;
     }
+
     .active {
       outline: 4px solid #ff0000;
       outline-offset: -4px;
@@ -250,8 +255,6 @@
   // === 設定 ===
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
-  
-  // ★★★ 履歴を独立させるためのキー（ここだけ変更） ★★★
   const historyKey = "frann_history_fラン就職チャンネル";
 
   // === DOM ===
@@ -275,10 +278,8 @@
   let currentVideoEl = null;
   let isHistoryOpen = false;
 
-  // ====================== 履歴機能（独立化済み） ======================
-  function loadHistory() { 
-    return JSON.parse(localStorage.getItem(historyKey) || "[]"); 
-  }
+  // ====================== 履歴機能 ======================
+  function loadHistory() { return JSON.parse(localStorage.getItem(historyKey) || "[]"); }
   function saveHistory(video) {
     let history = loadHistory();
     history = history.filter(item => item.id !== video.id);
@@ -322,18 +323,18 @@
     saveHistory({ id: videoId, title });
   }
 
-  // ====================== リンクコピー機能 ======================
+  // ====================== リンクコピー機能（URLのみ） ======================
   function copyLink(videoId) {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
     navigator.clipboard.writeText(url).then(() => {
       const btn = event.currentTarget;
       const originalText = btn.textContent;
-      btn.textContent = "✓ コピーしました";
+      btn.textContent = "✓ コピー";
       btn.style.background = "#4caf50";
       setTimeout(() => {
         btn.textContent = originalText;
-        btn.style.background = "rgba(0,0,0,0.7)";
-      }, 2000);
+        btn.style.background = "rgba(0,0,0,0.8)";
+      }, 1800);
     });
   }
 
@@ -365,6 +366,7 @@
       const videoId = item.snippet.resourceId?.videoId;
       if (!videoId) return;
       const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
+
       const div = document.createElement("div");
       div.className = "video-item";
       div.dataset.id = videoId;
@@ -372,19 +374,22 @@
         <div class="thumbnail">
           <img src="${thumbnail}" loading="lazy" alt="${title}">
           <div class="play-btn">▶</div>
-          <button class="copy-btn">🔗 リンクコピー</button>
+          <button class="copy-btn">🔗</button>
         </div>
         <div class="video-title">${title}</div>
       `;
+
       div.onclick = (e) => {
         if (!e.target.classList.contains('copy-btn')) {
           playVideo(videoId, title, div);
         }
       };
+
       div.querySelector('.copy-btn').onclick = (e) => {
         e.stopPropagation();
         copyLink(videoId);
       };
+
       fragment.appendChild(div);
     });
     videosContainer.appendChild(fragment);
@@ -440,13 +445,11 @@
     });
   }
 
-  // ====================== ボタン ======================
   function initButtons() {
     jumpBtn.onclick = () => currentVideoEl?.scrollIntoView({ behavior: "smooth", block: "center" });
     topBtn.onclick = () => videosWrapper.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // ====================== メイン ======================
   async function main() {
     try {
       allItems = await fetchAllVideos();
