@@ -10,234 +10,103 @@
     }
     * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      scroll-behavior: smooth;
-      background: #f8f8f8;
-      font-family: system-ui, -apple-system, Arial, sans-serif;
+      margin: 0; padding: 0; height: 100%; scroll-behavior: smooth;
+      background: #f8f8f8; font-family: system-ui, -apple-system, Arial, sans-serif;
       overflow: hidden;
     }
+    body { display: flex; padding: 15px 15px 15px 0; gap: 15px; }
 
-    body {
-      display: flex;
-      padding: 15px 15px 15px 0;
-      gap: 15px;
-    }
-
-    /* 軽量化したサイドバー */
-    #sidebar {
-      width: 0;
-      overflow: hidden;
-      background: rgba(255,255,255,0.98);
-      border-radius: 12px;
-      box-shadow: 2px 0 12px rgba(0,0,0,0.08);
-      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      height: fit-content;
-      align-self: flex-start;
-      padding: 16px;
-      backdrop-filter: blur(8px);
-    }
+    /* サイドバー・ボタン・検索バー（前回と同じ軽量版） */
+    #sidebar { width: 0; overflow: hidden; background: rgba(255,255,255,0.98); border-radius: 12px;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.08); transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
+      height: fit-content; align-self: flex-start; padding: 16px; backdrop-filter: blur(8px); }
     #sidebar.open { width: 340px; }
 
     .sidebar-section { margin-bottom: 24px; }
-    #sidebar h3 {
-      margin: 0 0 10px 0;
-      font-size: 15px;
-      font-weight: 700;
-      color: #333;
-    }
-    #clearHistoryBtn, #clearLaterBtn {
-      font-size: 12px;
-      padding: 5px 10px;
-      background: #ff4d4d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    #sidebar h3 { margin: 0 0 10px 0; font-size: 15px; font-weight: 700; color: #333; }
+    #clearHistoryBtn, #clearLaterBtn { font-size: 12px; padding: 5px 10px; background: #ff4d4d; color: white; border: none; border-radius: 6px; cursor: pointer; }
 
     .history-item, .later-item {
-      padding: 10px 12px;
-      margin-bottom: 6px;
-      border-radius: 8px;
-      font-size: 13.5px;
-      cursor: pointer;
-      transition: background 0.2s;
-      line-height: 1.4;
+      padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; font-size: 13.5px;
+      cursor: pointer; transition: background 0.2s; line-height: 1.4;
     }
-    .history-item:hover, .later-item:hover {
-      background: #f0f0f0;
-    }
+    .history-item:hover, .later-item:hover { background: #f0f0f0; }
 
-    /* 左側ボタン（小さく・軽く） */
     #toggle-container {
-      position: fixed;
-      left: 6px;
-      top: 20px;
-      z-index: 99999;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
+      position: fixed; left: 6px; top: 20px; z-index: 99999;
+      display: flex; flex-direction: column; gap: 9px;
     }
     #toggleHistoryBtn, #toggleLaterBtn {
-      width: 40px;
-      height: 40px;
-      background: #111;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 21px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+      width: 40px; height: 40px; background: #111; color: white; border: none;
+      border-radius: 50%; font-size: 21px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.45);
       transition: all 0.25s ease;
     }
-    #toggleHistoryBtn:hover, #toggleLaterBtn:hover {
-      transform: scale(1.12);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.6);
-    }
+    #toggleHistoryBtn:hover, #toggleLaterBtn:hover { transform: scale(1.12); box-shadow: 0 6px 16px rgba(0,0,0,0.6); }
 
-    /* 検索バー（軽量化） */
-    #search-container {
-      position: fixed;
-      top: 18px;
-      right: 70px;
-      z-index: 9999;
-      width: 300px;
-    }
+    #search-container { position: fixed; top: 18px; right: 70px; z-index: 9999; width: 300px; }
     #searchInput {
-      width: 100%;
-      padding: 11px 18px;
-      border: 1px solid #ddd;
-      border-radius: 999px;
-      font-size: 14.5px;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      width: 100%; padding: 11px 18px; border: 1px solid #ddd; border-radius: 999px;
+      font-size: 14.5px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       outline: none;
-      transition: border 0.2s;
     }
-    #searchInput:focus {
-      border-color: #ff3333;
-    }
+    #searchInput:focus { border-color: #ff3333; }
 
-    /* メイン */
-    #main {
-      flex: 1;
-      display: flex;
-      gap: 15px;
-      max-width: 1400px;
-      width: 100%;
-      margin-top: 68px;
-    }
-
+    #main { flex: 1; display: flex; gap: 15px; max-width: 1400px; width: 100%; margin-top: 68px; }
     #player-area {
-      width: var(--player-width);
-      height: var(--player-height);
-      flex-shrink: 0;
-      position: relative;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-      overflow: hidden;
+      width: var(--player-width); height: var(--player-height); flex-shrink: 0;
+      position: relative; background: white; border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15); overflow: hidden;
     }
 
     #thumbnail-area { flex: 1; display: flex; flex-direction: column; }
     h2 { margin: 0 0 12px 0; text-align: center; font-size: 24px; color: #222; }
 
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 10px; }
-    #videos {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
+    #videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 
+    /* === ここを大幅改善：ボタンをタイトル内に移動 === */
     .video-item {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      transition: all 0.25s ease;
+      background: white; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: all 0.25s ease; position: relative;
     }
-    .video-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
+    .video-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
 
     .thumbnail { position: relative; cursor: pointer; }
     .thumbnail img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
 
     .play-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 52px;
-      height: 52px;
-      background: rgba(0,0,0,0.75);
-      color: white;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      font-size: 28px;
-      transition: background 0.2s;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 52px; height: 52px; background: rgba(0,0,0,0.75); color: white;
+      border-radius: 50%; display: grid; place-items: center; font-size: 28px;
     }
     .play-btn:hover { background: #ff0000; }
 
     .video-title {
-      padding: 11px 12px 12px;
-      font-size: 14px;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      padding: 12px 12px 12px 12px; font-size: 14px; line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden; position: relative; padding-right: 110px; /* ボタン分の余白 */
     }
 
-    .copy-btn, .later-btn {
-      position: absolute;
-      top: 50%;
-      background: rgba(0,0,0,0.85);
-      color: white;
-      border: none;
-      padding: 4px 10px;
-      font-size: 11px;
-      border-radius: 5px;
-      cursor: pointer;
-      opacity: 0;
-      transition: all 0.2s;
+    /* タイトル内にボタンを配置 */
+    .action-buttons {
+      position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 10;
     }
-    .copy-btn { right: 12px; transform: translateY(-50%); }
-    .later-btn { right: 65px; transform: translateY(-50%); }
-
-    .video-item:hover .copy-btn,
-    .video-item:hover .later-btn { opacity: 1; }
-
-    .active {
-      outline: 3px solid #ff0000;
-      outline-offset: -3px;
+    .action-btn {
+      background: rgba(0,0,0,0.85); color: white; border: none; padding: 5px 9px;
+      font-size: 11px; border-radius: 5px; cursor: pointer; transition: all 0.2s;
     }
+    .action-btn:hover { background: #ff9800; }
+
+    .active { outline: 3px solid #ff0000; outline-offset: -3px; }
 
     .fixed-buttons {
-      position: fixed;
-      right: 30px;
-      bottom: 30px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 100;
+      position: fixed; right: 30px; bottom: 30px; display: flex; flex-direction: column;
+      gap: 10px; z-index: 100;
     }
     .fixed-btn {
-      padding: 12px 22px;
-      border: none;
-      border-radius: 999px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-      transition: all 0.2s;
+      padding: 12px 22px; border: none; border-radius: 999px; color: white;
+      font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.25);
     }
     #jumpBtn { background: #ff0000; }
     #topBtn { background: #333; }
@@ -294,6 +163,7 @@
   </div>
 
 <script>
+  // スクリプトは前回と同じ（機能維持）
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
   const historyKey = "frann_history";
@@ -324,7 +194,6 @@
   function toggleHistory() { isHistoryVisible = !isHistoryVisible; updateSidebar(); }
   function toggleLater() { isLaterVisible = !isLaterVisible; updateSidebar(); }
 
-  // 軽量検索
   function filterVideos() {
     const term = searchInput.value.toLowerCase().trim();
     allVideoItems.forEach(item => {
@@ -333,7 +202,6 @@
   }
   searchInput.addEventListener("input", filterVideos);
 
-  // 履歴・後で見る（軽量化）
   function renderSimpleList(container, items, isLater = false) {
     container.innerHTML = items.length === 0 
       ? `<p style="color:#888; text-align:center; padding:20px 0; font-size:13px;">${isLater ? '後で見るリストは空です' : '履歴はありません'}</p>` 
@@ -428,16 +296,21 @@
           <img src="${item.snippet.thumbnails.medium.url}" loading="lazy">
           <div class="play-btn">▶</div>
         </div>
-        <div class="video-title">${title}</div>
-        <button class="later-btn">後で見る</button>
-        <button class="copy-btn">🔗</button>
+        <div class="video-title">
+          ${title}
+          <div class="action-buttons">
+            <button class="action-btn later-btn">後で見る</button>
+            <button class="action-btn copy-btn">🔗</button>
+          </div>
+        </div>
       `;
 
       div.onclick = (e) => {
-        if (!['later-btn','copy-btn'].some(c => e.target.classList.contains(c))) {
+        if (!e.target.classList.contains('action-btn')) {
           playVideo(videoId, title, div);
         }
       };
+
       div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
       div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); saveLater({id: videoId, title}); };
 
@@ -446,12 +319,6 @@
 
     videosContainer.appendChild(fragment);
     loadingEl.style.display = "none";
-  }
-
-  function initResize() {
-    // リサイズ機能（軽量版）
-    const resizeBar = document.getElementById("resize-bar");
-    // ... （必要なら残すが、今回は省略してシンプルに。必要なら追加してください）
   }
 
   async function main() {
@@ -466,7 +333,6 @@
     }
   }
 
-  // イベント
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
   document.getElementById("clearHistoryBtn").addEventListener("click", () => {
