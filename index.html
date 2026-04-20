@@ -18,14 +18,11 @@
       font-family: system-ui, -apple-system, Arial, sans-serif;
       overflow: hidden;
     }
-
     body {
       display: flex;
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
-
-    /* 軽量化したサイドバー */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -39,7 +36,6 @@
       backdrop-filter: blur(8px);
     }
     #sidebar.open { width: 340px; }
-
     .sidebar-section { margin-bottom: 24px; }
     #sidebar h3 {
       margin: 0 0 10px 0;
@@ -56,7 +52,6 @@
       border-radius: 6px;
       cursor: pointer;
     }
-
     .history-item, .later-item {
       padding: 10px 12px;
       margin-bottom: 6px;
@@ -69,8 +64,6 @@
     .history-item:hover, .later-item:hover {
       background: #f0f0f0;
     }
-
-    /* 左側ボタン（小さく・軽く） */
     #toggle-container {
       position: fixed;
       left: 6px;
@@ -99,8 +92,6 @@
       transform: scale(1.12);
       box-shadow: 0 6px 16px rgba(0,0,0,0.6);
     }
-
-    /* 検索バー（軽量化） */
     #search-container {
       position: fixed;
       top: 18px;
@@ -122,8 +113,6 @@
     #searchInput:focus {
       border-color: #ff3333;
     }
-
-    /* メイン */
     #main {
       flex: 1;
       display: flex;
@@ -132,7 +121,6 @@
       width: 100%;
       margin-top: 68px;
     }
-
     #player-area {
       width: var(--player-width);
       height: var(--player-height);
@@ -143,32 +131,35 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.15);
       overflow: hidden;
     }
-
     #thumbnail-area { flex: 1; display: flex; flex-direction: column; }
     h2 { margin: 0 0 12px 0; text-align: center; font-size: 24px; color: #222; }
-
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 10px; }
     #videos {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
     }
-
     .video-item {
       background: white;
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 3px 10px rgba(0,0,0,0.1);
       transition: all 0.25s ease;
+      position: relative;
     }
     .video-item:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
-
-    .thumbnail { position: relative; cursor: pointer; }
-    .thumbnail img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-
+    .thumbnail { 
+      position: relative; 
+      cursor: pointer; 
+    }
+    .thumbnail img { 
+      width: 100%; 
+      aspect-ratio: 16/9; 
+      object-fit: cover; 
+    }
     .play-btn {
       position: absolute;
       top: 50%;
@@ -186,6 +177,32 @@
     }
     .play-btn:hover { background: #ff0000; }
 
+    /* ボタンをサムネイル右上に移動 */
+    .thumbnail-buttons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 10;
+    }
+    .video-item:hover .thumbnail-buttons {
+      opacity: 1;
+    }
+    .copy-btn, .later-btn {
+      background: rgba(0,0,0,0.85);
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .later-btn { padding: 6px 9px; }
+
     .video-title {
       padding: 11px 12px 12px;
       font-size: 14px;
@@ -195,31 +212,10 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-
-    .copy-btn, .later-btn {
-      position: absolute;
-      top: 50%;
-      background: rgba(0,0,0,0.85);
-      color: white;
-      border: none;
-      padding: 4px 10px;
-      font-size: 11px;
-      border-radius: 5px;
-      cursor: pointer;
-      opacity: 0;
-      transition: all 0.2s;
-    }
-    .copy-btn { right: 12px; transform: translateY(-50%); }
-    .later-btn { right: 65px; transform: translateY(-50%); }
-
-    .video-item:hover .copy-btn,
-    .video-item:hover .later-btn { opacity: 1; }
-
     .active {
       outline: 3px solid #ff0000;
       outline-offset: -3px;
     }
-
     .fixed-buttons {
       position: fixed;
       right: 30px;
@@ -244,16 +240,13 @@
   </style>
 </head>
 <body>
-
   <div id="toggle-container">
     <button id="toggleHistoryBtn">›</button>
     <button id="toggleLaterBtn">›</button>
   </div>
-
   <div id="search-container">
     <input type="text" id="searchInput" placeholder="動画タイトルで検索..." autocomplete="off">
   </div>
-
   <div id="sidebar">
     <div class="sidebar-section" id="historySection">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -271,7 +264,6 @@
       <div id="later"></div>
     </div>
   </div>
-
   <div id="main">
     <div id="player-area">
       <div id="player"></div>
@@ -287,7 +279,6 @@
       </div>
     </div>
   </div>
-
   <div class="fixed-buttons">
     <button id="jumpBtn" class="fixed-btn">▶ 再生中へ戻る</button>
     <button id="topBtn" class="fixed-btn">↑ 一番上に戻る</button>
@@ -298,7 +289,6 @@
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
   const historyKey = "frann_history";
   const laterKey = "frann_later";
-
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -308,7 +298,6 @@
   const videosContainer = document.getElementById("videos");
   const loadingEl = document.getElementById("loading");
   const searchInput = document.getElementById("searchInput");
-
   let currentActive = null;
   let allVideoItems = [];
   let isHistoryVisible = false;
@@ -320,11 +309,9 @@
     toggleHistoryBtn.textContent = isHistoryVisible ? "‹" : "›";
     toggleLaterBtn.textContent = isLaterVisible ? "‹" : "›";
   }
-
   function toggleHistory() { isHistoryVisible = !isHistoryVisible; updateSidebar(); }
   function toggleLater() { isLaterVisible = !isLaterVisible; updateSidebar(); }
 
-  // 軽量検索
   function filterVideos() {
     const term = searchInput.value.toLowerCase().trim();
     allVideoItems.forEach(item => {
@@ -333,18 +320,16 @@
   }
   searchInput.addEventListener("input", filterVideos);
 
-  // 履歴・後で見る（軽量化）
   function renderSimpleList(container, items, isLater = false) {
-    container.innerHTML = items.length === 0 
-      ? `<p style="color:#888; text-align:center; padding:20px 0; font-size:13px;">${isLater ? '後で見るリストは空です' : '履歴はありません'}</p>` 
+    container.innerHTML = items.length === 0
+      ? `<p style="color:#888; text-align:center; padding:20px 0; font-size:13px;">${isLater ? '後で見るリストは空です' : '履歴はありません'}</p>`
       : "";
-
     items.forEach(item => {
       const div = document.createElement("div");
       div.className = isLater ? "later-item" : "history-item";
       div.textContent = item.title;
       div.onclick = () => document.querySelector(`[data-id="${item.id}"]`)?.scrollIntoView({behavior: "smooth", block: "center"});
-      
+     
       if (isLater) {
         const remove = document.createElement("span");
         remove.textContent = "×";
@@ -366,7 +351,6 @@
     localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 25)));
     renderSimpleList(historyBox, history);
   }
-
   function loadLater() { return JSON.parse(localStorage.getItem(laterKey) || "[]"); }
   function saveLater(video) {
     let later = loadLater();
@@ -411,7 +395,6 @@
     videosContainer.innerHTML = "";
     allVideoItems = [];
     const fragment = document.createDocumentFragment();
-
     items.forEach(item => {
       const title = item.snippet.title;
       const videoId = item.snippet.resourceId.videoId;
@@ -427,10 +410,14 @@
         <div class="thumbnail">
           <img src="${item.snippet.thumbnails.medium.url}" loading="lazy">
           <div class="play-btn">▶</div>
+          
+          <!-- ここにボタンを移動 -->
+          <div class="thumbnail-buttons">
+            <button class="later-btn">後で見る</button>
+            <button class="copy-btn">🔗</button>
+          </div>
         </div>
         <div class="video-title">${title}</div>
-        <button class="later-btn">後で見る</button>
-        <button class="copy-btn">🔗</button>
       `;
 
       div.onclick = (e) => {
@@ -438,20 +425,20 @@
           playVideo(videoId, title, div);
         }
       };
-      div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
-      div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); saveLater({id: videoId, title}); };
+
+      div.querySelector('.copy-btn').onclick = (e) => { 
+        e.stopPropagation(); 
+        copyLink(videoId); 
+      };
+      div.querySelector('.later-btn').onclick = (e) => { 
+        e.stopPropagation(); 
+        saveLater({id: videoId, title}); 
+      };
 
       fragment.appendChild(div);
     });
-
     videosContainer.appendChild(fragment);
     loadingEl.style.display = "none";
-  }
-
-  function initResize() {
-    // リサイズ機能（軽量版）
-    const resizeBar = document.getElementById("resize-bar");
-    // ... （必要なら残すが、今回は省略してシンプルに。必要なら追加してください）
   }
 
   async function main() {
@@ -466,9 +453,9 @@
     }
   }
 
-  // イベント
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
+
   document.getElementById("clearHistoryBtn").addEventListener("click", () => {
     if (confirm("再生履歴をすべて削除しますか？")) {
       localStorage.removeItem(historyKey);
