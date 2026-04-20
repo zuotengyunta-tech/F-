@@ -16,8 +16,9 @@
       font-family: Arial, sans-serif;
       background: #f8f8f8;
       display: flex;
-      padding-left: 55px; /* トグルボタン分の余白 */
+      padding-left: 55px;
       gap: 15px;
+      overflow: hidden; /* 全体のはみ出し防止 */
     }
 
     /* トグルボタン */
@@ -33,29 +34,35 @@
       justify-content: center;
     }
     #toggleHistoryBtn { top: 25px; }
-    #toggleLaterBtn   { top: 65px; }
+    #toggleLaterBtn { top: 65px; }
 
-    /* サイドバー */
+    /* サイドバー共通 */
     .sidebar {
       position: fixed;
       left: 55px;
-      top: 15px;
-      width: 0;
-      overflow: hidden;
       background: white;
       border-radius: 12px;
       box-shadow: 2px 0 12px rgba(0,0,0,0.12);
       transition: width 0.4s ease;
-      height: fit-content;
       z-index: 300;
-      padding: 0 15px;
+      padding: 15px;
+      width: 0;
+      overflow: hidden;
     }
-    .sidebar.open { width: var(--sidebar-width); padding: 15px; }
+    .sidebar.open {
+      width: var(--sidebar-width);
+    }
+
+    #historySidebar {
+      top: 15px;
+      max-height: calc(100vh - 30px);
+      overflow-y: auto;
+    }
 
     #laterSidebar {
-      top: auto;
-      bottom: 15px; /* 下寄せに変更して重なり防止 */
-      left: 55px;
+      bottom: 15px;
+      max-height: calc(100vh - 100px); /* 下から固定しつつ高さ制限 */
+      overflow-y: auto;
     }
 
     #sidebar-header {
@@ -63,7 +70,6 @@
     }
     h3 { margin: 8px 0 6px 0; font-size: 16px; }
     .section-title { font-size: 15px; color: #555; margin: 16px 0 8px 0; }
-
     #clearHistoryBtn, #clearLaterBtn {
       font-size: 11px; padding: 4px 10px;
       background: #f44336; color: white;
@@ -83,12 +89,12 @@
       gap: 15px;
       max-width: 1400px;
       width: 100%;
-      margin-left: 0;
       transition: margin-left 0.4s ease;
     }
 
-    /* サイドバーが開いているときのメインの左余白調整 */
-    body:has(#historySidebar.open) #main,
+    body:has(#historySidebar.open) #main {
+      margin-left: var(--sidebar-width);
+    }
     body:has(#laterSidebar.open) #main {
       margin-left: var(--sidebar-width);
     }
@@ -109,7 +115,6 @@
       overflow: hidden;
     }
     #player { width: 100%; height: 100%; }
-    iframe { width: 100%; height: 100%; border: none; }
 
     #resize-bar, #player-horizontal-handle, #vertical-resize-bar {
       background: #ddd; cursor: col-resize;
@@ -117,7 +122,7 @@
     #resize-bar:hover, #resize-bar.active,
     #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
 
-    #thumbnail-area { flex: 1; display: flex; flex-direction: column; max-height: 100vh; }
+    #thumbnail-area { flex: 1; display: flex; flex-direction: column; max-height: 100vh; overflow: hidden; }
     h2 { margin: 0 0 15px 0; text-align: center; font-size: 25px; }
 
     #search-container { margin-bottom: 15px; padding: 0 5px; }
@@ -150,7 +155,6 @@
       position: relative;
     }
     .video-item:hover { transform: translateY(-4px); }
-
     .thumbnail img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
     .play-btn {
       position: absolute; top: 50%; left: 50%;
@@ -186,7 +190,7 @@
       opacity: 0;
       transition: all 0.2s;
     }
-    .copy-btn  { top: 12px; right: 12px; }
+    .copy-btn { top: 12px; right: 12px; }
     .later-btn { top: 38px; right: 12px; font-size: 10.5px; }
     .video-item:hover .copy-btn,
     .video-item:hover .later-btn { opacity: 1; }
@@ -217,7 +221,6 @@
   </style>
 </head>
 <body>
-
   <button id="toggleHistoryBtn" class="toggle-btn">›</button>
   <button id="toggleLaterBtn" class="toggle-btn">›</button>
 
@@ -262,7 +265,7 @@
   </div>
 
 <script>
-  // （ここから下は前回と同じスクリプト部分です。変更なし）
+  // ここから下は前回と同じ（変更なし）
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
   const historyKey = "frann_history";
@@ -286,8 +289,6 @@
   let allItems = [];
   let currentActive = null;
   let currentVideoEl = null;
-  let isHistoryOpen = false;
-  let isLaterOpen = false;
 
   function loadList(key) { return JSON.parse(localStorage.getItem(key) || "[]"); }
   function saveList(key, list) { localStorage.setItem(key, JSON.stringify(list.slice(0, 30))); }
@@ -408,6 +409,7 @@
     loadingEl.style.display = "none";
   }
 
+  // リサイズ機能（変更なし）
   let isResizingHorizontal = false, isResizingVertical = false;
   function initResize() {
     const resizeBar = document.getElementById("resize-bar");
@@ -434,7 +436,6 @@
         document.documentElement.style.setProperty("--player-height", (h / window.innerHeight * 100) + "vh");
       }
     });
-
     document.addEventListener("mouseup", () => {
       isResizingHorizontal = isResizingVertical = false;
       resizeBar.classList.remove("active");
@@ -449,15 +450,13 @@
   }
 
   function toggleHistory() {
-    isHistoryOpen = !isHistoryOpen;
-    historySidebar.classList.toggle("open", isHistoryOpen);
-    toggleHistoryBtn.textContent = isHistoryOpen ? "‹" : "›";
+    historySidebar.classList.toggle("open");
+    toggleHistoryBtn.textContent = historySidebar.classList.contains("open") ? "‹" : "›";
   }
 
   function toggleLater() {
-    isLaterOpen = !isLaterOpen;
-    laterSidebar.classList.toggle("open", isLaterOpen);
-    toggleLaterBtn.textContent = isLaterOpen ? "‹" : "›";
+    laterSidebar.classList.toggle("open");
+    toggleLaterBtn.textContent = laterSidebar.classList.contains("open") ? "‹" : "›";
   }
 
   async function main() {
