@@ -56,31 +56,31 @@
     }
     .history-item:hover, .later-item:hover { background: #f5f5f5; }
 
-    /* === 画像風トグルボタン === */
+    /* シンプル黒丸ボタン（白い枠完全削除） */
     #toggleHistoryBtn, #toggleLaterBtn {
       position: fixed;
       left: 20px;
-      width: 48px;
-      height: 48px;
-      background: rgba(0, 0, 0, 0.85);
+      width: 52px;
+      height: 52px;
+      background: #1c1c1c;
       color: white;
       border: none;
       border-radius: 50%;
-      font-size: 24px;
+      font-size: 26px;
       cursor: pointer;
       z-index: 300;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.35);
       transition: all 0.3s ease;
     }
-    #toggleHistoryBtn { top: 25px; }
-    #toggleLaterBtn { top: 85px; }
+    #toggleHistoryBtn { top: 30px; }
+    #toggleLaterBtn { top: 95px; }
 
     #toggleHistoryBtn:hover, #toggleLaterBtn:hover {
-      background: rgba(0, 0, 0, 0.95);
-      transform: scale(1.1);
+      background: #000;
+      transform: scale(1.08);
     }
 
     #main {
@@ -167,7 +167,6 @@
   <button id="toggleLaterBtn">›</button>
 
   <div id="sidebar">
-    <!-- 再生履歴 -->
     <div class="sidebar-section" id="historySection">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3>再生履歴</h3>
@@ -178,7 +177,6 @@
 
     <hr style="border: none; border-top: 3px solid #eee; margin: 15px 0 25px 0;">
 
-    <!-- 後で見る -->
     <div class="sidebar-section" id="laterSection">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3>後で見る</h3>
@@ -210,13 +208,12 @@
   </div>
 
 <script>
-  // === 設定 ===
+  // （スクリプト部分は前回と同じで変更なし）
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
   const historyKey = "frann_history_fラン就職チャンネル";
   const laterKey = "frann_later_fラン就職チャンネル";
 
-  // === DOM ===
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -256,7 +253,7 @@
     updateSidebar();
   }
 
-  // ====================== 履歴・後で見る ======================
+  // 以下は前回と同じ関数群（loadHistory, renderHistory, playVideo など）
   function loadHistory() { return JSON.parse(localStorage.getItem(historyKey) || "[]"); }
   function saveHistory(video) {
     let history = loadHistory();
@@ -320,7 +317,6 @@
     }
   }
 
-  // ====================== 動画再生 ======================
   function playVideo(videoId, title, videoItemElement) {
     player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     if (currentActive) currentActive.classList.remove("active");
@@ -355,7 +351,6 @@
     }, 1200);
   }
 
-  // ====================== YouTube API ======================
   async function fetchAllVideos() {
     let items = [];
     let pageToken = "";
@@ -470,7 +465,6 @@
     }
   }
 
-  // 初期化
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
   clearHistoryBtn.addEventListener("click", clearHistory);
