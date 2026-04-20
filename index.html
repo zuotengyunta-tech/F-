@@ -18,7 +18,9 @@
       padding: 15px;
       gap: 15px;
     }
-    #sidebar {
+
+    /* サイドバー関連 */
+    .sidebar {
       width: 0;
       overflow: hidden;
       background: white;
@@ -27,30 +29,43 @@
       transition: width 0.4s ease;
       height: fit-content;
       align-self: flex-start;
+      padding: 0 15px;
     }
-    #sidebar.open { width: 360px; padding: 15px; }
+    .sidebar.open { width: 360px; padding: 15px; }
+
+    .toggle-btn {
+      position: fixed;
+      left: 15px;
+      width: 32px; height: 32px;
+      background: #333; color: white;
+      border: none; border-radius: 50%;
+      font-size: 18px; cursor: pointer; z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #toggleHistoryBtn { top: 25px; }
+    #toggleLaterBtn   { top: 65px; }
+
     #sidebar-header {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
     }
-    #sidebar h3 { margin: 8px 0 6px 0; font-size: 16px; }
+    h3 { margin: 8px 0 6px 0; font-size: 16px; }
     .section-title { font-size: 15px; color: #555; margin: 16px 0 8px 0; }
+
     #clearHistoryBtn, #clearLaterBtn {
       font-size: 11px; padding: 4px 10px;
       background: #f44336; color: white;
       border: none; border-radius: 4px; cursor: pointer;
     }
+
     .history-item, .later-item {
       padding: 10px; margin-bottom: 8px; border-radius: 6px;
       font-size: 14px; cursor: pointer;
     }
     .history-item:hover, .later-item:hover { background: #f5f5f5; }
-    #toggleHistoryBtn {
-      position: fixed; left: 15px; top: 25px;
-      width: 32px; height: 32px;
-      background: #333; color: white;
-      border: none; border-radius: 50%;
-      font-size: 18px; cursor: pointer; z-index: 300;
-    }
+
+    /* メイン */
     #main {
       flex: 1;
       display: flex;
@@ -65,40 +80,49 @@
       align-self: flex-start;
       position: relative;
       min-width: 320px;
-      max-width: 70%;
       background: white;
       border-radius: 12px;
       box-shadow: 0 5px 25px rgba(0,0,0,0.2);
       overflow: hidden;
     }
     #player { width: 100%; height: 100%; }
-    iframe { width: 100%; height: 100%; border: none; display: block; }
+    iframe { width: 100%; height: 100%; border: none; }
 
-    #player-horizontal-handle {
-      position: absolute; top: 0; right: -4px; width: 9px; height: 100%;
-      background: transparent; cursor: col-resize; z-index: 220;
-    }
-    #vertical-resize-bar {
-      position: absolute; bottom: 0; left: 0; width: 100%; height: 8px;
-      background: #ddd; cursor: row-resize; z-index: 230;
-    }
-    #resize-bar {
-      width: 6px; background: #ddd; cursor: col-resize;
-      border-radius: 3px; margin: 0 -3px; z-index: 100;
+    #resize-bar, #player-horizontal-handle, #vertical-resize-bar {
+      background: #ddd;
+      cursor: col-resize;
     }
     #resize-bar:hover, #resize-bar.active,
-    #vertical-resize-bar:hover, #vertical-resize-bar.active {
-      background: #ff0000;
-    }
+    #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
 
     #thumbnail-area { flex: 1; display: flex; flex-direction: column; max-height: 100vh; }
     h2 { margin: 0 0 15px 0; text-align: center; font-size: 25px; }
+
+    /* 検索バー */
+    #search-container {
+      margin-bottom: 15px;
+      padding: 0 5px;
+    }
+    #searchInput {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      outline: none;
+    }
+    #searchInput:focus {
+      border-color: #ff0000;
+      box-shadow: 0 0 0 3px rgba(255,0,0,0.1);
+    }
+
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 12px; }
     #videos {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
+
     .video-item {
       background: white;
       border-radius: 12px;
@@ -108,7 +132,7 @@
       position: relative;
     }
     .video-item:hover { transform: translateY(-4px); }
-    .thumbnail { position: relative; cursor: pointer; }
+
     .thumbnail img {
       width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
     }
@@ -143,7 +167,6 @@
       font-size: 11px;
       border-radius: 4px;
       cursor: pointer;
-      z-index: 25;
       opacity: 0;
       transition: all 0.2s;
     }
@@ -153,10 +176,8 @@
     .video-item:hover .later-btn { opacity: 1; }
     .later-btn:hover { background: #2196f3; }
 
-    .active {
-      outline: 4px solid #ff0000;
-      outline-offset: -4px;
-    }
+    .active { outline: 4px solid #ff0000; outline-offset: -4px; }
+
     .fixed-buttons {
       position: fixed;
       right: 40px;
@@ -180,14 +201,22 @@
   </style>
 </head>
 <body>
-  <button id="toggleHistoryBtn">›</button>
-  <div id="sidebar">
+
+  <!-- 展開ボタン -->
+  <button id="toggleHistoryBtn" class="toggle-btn">›</button>
+  <button id="toggleLaterBtn" class="toggle-btn">›</button>
+
+  <!-- 再生履歴サイドバー -->
+  <div id="historySidebar" class="sidebar">
     <div id="sidebar-header">
       <h3>再生履歴</h3>
       <button id="clearHistoryBtn">全削除</button>
     </div>
     <div id="history"></div>
+  </div>
 
+  <!-- 後で見るサイドバー -->
+  <div id="laterSidebar" class="sidebar">
     <div class="section-title">後で見る</div>
     <button id="clearLaterBtn">全削除</button>
     <div id="watchLater"></div>
@@ -202,6 +231,12 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>Fラン大学就職チャンネル</h2>
+      
+      <!-- 検索バー -->
+      <div id="search-container">
+        <input type="text" id="searchInput" placeholder="動画を検索...（タイトルでフィルタ）" autocomplete="off">
+      </div>
+
       <div id="videos-wrapper">
         <div id="videos"></div>
         <div id="loading">全動画を読み込み中...（高速化版）</div>
@@ -222,30 +257,30 @@
   const laterKey = "frann_watch_later";
 
   // === DOM ===
-  const sidebar = document.getElementById("sidebar");
-  const toggleBtn = document.getElementById("toggleHistoryBtn");
+  const historySidebar = document.getElementById("historySidebar");
+  const laterSidebar = document.getElementById("laterSidebar");
+  const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
+  const toggleLaterBtn = document.getElementById("toggleLaterBtn");
   const clearHistoryBtn = document.getElementById("clearHistoryBtn");
   const clearLaterBtn = document.getElementById("clearLaterBtn");
   const historyBox = document.getElementById("history");
   const laterBox = document.getElementById("watchLater");
   const player = document.getElementById("player");
-  const resizeBar = document.getElementById("resize-bar");
-  const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
-  const verticalResizeBar = document.getElementById("vertical-resize-bar");
   const videosContainer = document.getElementById("videos");
   const loadingEl = document.getElementById("loading");
+  const searchInput = document.getElementById("searchInput");
   const jumpBtn = document.getElementById("jumpBtn");
   const topBtn = document.getElementById("topBtn");
 
+  let allItems = [];
   let currentActive = null;
   let currentVideoEl = null;
-  let isSidebarOpen = false;
+  let isHistoryOpen = false;
+  let isLaterOpen = false;
 
-  // ====================== 履歴・後で見る 共通関数 ======================
+  // ====================== リスト管理 ======================
   function loadList(key) { return JSON.parse(localStorage.getItem(key) || "[]"); }
-  function saveList(key, list) {
-    localStorage.setItem(key, JSON.stringify(list.slice(0, 30)));
-  }
+  function saveList(key, list) { localStorage.setItem(key, JSON.stringify(list.slice(0, 30))); }
 
   function renderHistory() {
     const items = loadList(historyKey);
@@ -271,7 +306,6 @@
     });
   }
 
-  // ====================== 後で見る 追加 ======================
   function addToWatchLater(videoId, title) {
     let list = loadList(laterKey);
     list = list.filter(item => item.id !== videoId);
@@ -288,7 +322,6 @@
     currentActive = videoItemElement;
     currentVideoEl = videoItemElement;
 
-    // 履歴に追加
     let history = loadList(historyKey);
     history = history.filter(item => item.id !== videoId);
     history.unshift({ id: videoId, title });
@@ -296,7 +329,6 @@
     renderHistory();
   }
 
-  // ====================== リンクコピー ======================
   function copyLink(videoId) {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -305,6 +337,15 @@
       btn.textContent = "✓ コピー";
       btn.style.background = "#4caf50";
       setTimeout(() => { btn.textContent = orig; btn.style.background = "rgba(0,0,0,0.85)"; }, 1500);
+    });
+  }
+
+  // ====================== 検索機能 ======================
+  function filterVideos(keyword) {
+    const lower = keyword.toLowerCase();
+    document.querySelectorAll('.video-item').forEach(item => {
+      const title = item.querySelector('.video-title').textContent.toLowerCase();
+      item.style.display = title.includes(lower) ? '' : 'none';
     });
   }
 
@@ -357,10 +398,7 @@
       };
 
       div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
-      div.querySelector('.later-btn').onclick = (e) => { 
-        e.stopPropagation(); 
-        addToWatchLater(videoId, title); 
-      };
+      div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToWatchLater(videoId, title); };
 
       fragment.appendChild(div);
     });
@@ -369,9 +407,14 @@
     loadingEl.style.display = "none";
   }
 
-  // ====================== リサイズ機能 ======================
+  // ====================== リサイズ・ボタン ======================
   let isResizingHorizontal = false, isResizingVertical = false;
-  function initResize() {
+  function initResize() { /* 省略（前回と同じ） */ 
+    // （前回のコードと同じリサイズ処理をここに貼り付けています）
+    const resizeBar = document.getElementById("resize-bar");
+    const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
+    const verticalResizeBar = document.getElementById("vertical-resize-bar");
+
     const startH = () => { isResizingHorizontal = true; resizeBar.classList.add("active"); document.body.style.cursor = "col-resize"; };
     const startV = () => { isResizingVertical = true; verticalResizeBar.classList.add("active"); document.body.style.cursor = "row-resize"; };
 
@@ -406,17 +449,24 @@
     topBtn.onclick = () => document.getElementById("videos-wrapper").scrollTo({top:0, behavior:"smooth"});
   }
 
-  // ====================== サイドバー ======================
-  function toggleSidebar() {
-    isSidebarOpen = !isSidebarOpen;
-    sidebar.classList.toggle("open", isSidebarOpen);
-    toggleBtn.textContent = isSidebarOpen ? "‹" : "›";
+  // ====================== サイドバー切り替え ======================
+  function toggleHistory() {
+    isHistoryOpen = !isHistoryOpen;
+    historySidebar.classList.toggle("open", isHistoryOpen);
+    toggleHistoryBtn.textContent = isHistoryOpen ? "‹" : "›";
   }
 
+  function toggleLater() {
+    isLaterOpen = !isLaterOpen;
+    laterSidebar.classList.toggle("open", isLaterOpen);
+    toggleLaterBtn.textContent = isLaterOpen ? "‹" : "›";
+  }
+
+  // ====================== メイン ======================
   async function main() {
     try {
-      const videos = await fetchAllVideos();
-      renderAllVideos(videos);
+      allItems = await fetchAllVideos();
+      renderAllVideos(allItems);
       renderHistory();
       renderWatchLater();
     } catch (err) {
@@ -427,7 +477,9 @@
   }
 
   // 初期化
-  toggleBtn.addEventListener("click", toggleSidebar);
+  toggleHistoryBtn.addEventListener("click", toggleHistory);
+  toggleLaterBtn.addEventListener("click", toggleLater);
+  
   clearHistoryBtn.addEventListener("click", () => {
     if (confirm("再生履歴をすべて削除しますか？")) {
       localStorage.removeItem(historyKey);
@@ -440,6 +492,8 @@
       renderWatchLater();
     }
   });
+
+  searchInput.addEventListener("input", (e) => filterVideos(e.target.value));
 
   initResize();
   initButtons();
