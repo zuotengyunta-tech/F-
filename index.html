@@ -29,13 +29,11 @@
       transition: width 0.4s ease;
       height: fit-content;
       align-self: flex-start;
-      padding: 0;
+      padding: 15px;
     }
-    #sidebar.open { width: 360px; padding: 15px; }
+    #sidebar.open { width: 360px; }
 
-    .sidebar-section {
-      margin-bottom: 25px;
-    }
+    .sidebar-section { margin-bottom: 28px; }
     .sidebar-section:last-child { margin-bottom: 0; }
 
     #sidebar h3 {
@@ -43,7 +41,7 @@
       font-size: 17px;
       font-weight: bold;
       padding-bottom: 8px;
-      border-bottom: 2px solid #ff0000;
+      border-bottom: 3px solid #ff0000;
     }
 
     #clearHistoryBtn, #clearLaterBtn {
@@ -60,14 +58,14 @@
 
     /* トグルボタン */
     #toggleHistoryBtn, #toggleLaterBtn {
-      position: fixed; left: 15px; width: 32px; height: 32px;
+      position: fixed; left: 15px; width: 34px; height: 34px;
       background: #333; color: white;
       border: none; border-radius: 50%;
-      font-size: 18px; cursor: pointer; z-index: 300;
+      font-size: 20px; cursor: pointer; z-index: 300;
       display: flex; align-items: center; justify-content: center;
     }
     #toggleHistoryBtn { top: 25px; }
-    #toggleLaterBtn { top: 65px; }
+    #toggleLaterBtn { top: 70px; }
 
     #main {
       flex: 1;
@@ -112,7 +110,6 @@
 
     #thumbnail-area { flex: 1; display: flex; flex-direction: column; max-height: 100vh; }
     h2 { margin: 0 0 15px 0; text-align: center; font-size: 25px; }
-
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 12px; }
     #videos {
       display: grid;
@@ -204,8 +201,7 @@
       <div id="history"></div>
     </div>
 
-    <!-- 区切り線 -->
-    <hr style="border: none; border-top: 3px solid #eee; margin: 10px 0 20px 0;">
+    <hr style="border: none; border-top: 3px solid #eee; margin: 15px 0 25px 0;">
 
     <!-- 後で見る -->
     <div class="sidebar-section">
@@ -276,7 +272,7 @@
   function renderHistory() {
     const history = loadHistory();
     historyBox.innerHTML = history.length === 0
-      ? '<p style="color:#888; text-align:center; padding:20px 10px;">履歴はありません</p>'
+      ? '<p style="color:#888; text-align:center; padding:30px 10px;">履歴はありません</p>'
       : "";
     history.forEach(item => {
       const div = document.createElement("div");
@@ -303,7 +299,7 @@
   function renderLater() {
     const laterList = loadLater();
     laterBox.innerHTML = laterList.length === 0
-      ? '<p style="color:#888; text-align:center; padding:20px 10px;">後で見るリストは空です</p>'
+      ? '<p style="color:#888; text-align:center; padding:30px 10px;">後で見るリストは空です</p>'
       : "";
     laterList.forEach(item => {
       const div = document.createElement("div");
@@ -428,9 +424,63 @@
     loadingEl.style.display = "none";
   }
 
-  // ====================== 初期化 ======================
-  function initResize() { /* 省略（前回と同じ） */ 
-    // （リサイズ機能は前回と同じなので省略しています。必要なら前のコードからそのまま貼り付けてください）
+  // リサイズ機能（完全版）
+  function initResize() {
+    const resizeBar = document.getElementById("resize-bar");
+    const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
+    const verticalResizeBar = document.getElementById("vertical-resize-bar");
+    const playerArea = document.getElementById("player-area");
+
+    let isResizingHorizontal = false;
+    let isResizingVertical = false;
+
+    const startHorizontal = (e) => {
+      isResizingHorizontal = true;
+      resizeBar.classList.add("active");
+      playerHorizontalHandle.style.background = "rgba(255,0,0,0.3)";
+      document.body.style.cursor = "col-resize";
+      e.preventDefault();
+    };
+
+    resizeBar.addEventListener("mousedown", startHorizontal);
+    playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+
+    verticalResizeBar.addEventListener("mousedown", (e) => {
+      isResizingVertical = true;
+      verticalResizeBar.classList.add("active");
+      document.body.style.cursor = "row-resize";
+      e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (isResizingHorizontal) {
+        const mainRect = document.getElementById("main").getBoundingClientRect();
+        let newWidth = ((e.clientX - mainRect.left) / mainRect.width) * 100;
+        newWidth = Math.max(25, Math.min(70, newWidth));
+        document.documentElement.style.setProperty("--player-width", newWidth + "%");
+      }
+      if (isResizingVertical) {
+        const playerRect = playerArea.getBoundingClientRect();
+        let newHeightPx = e.clientY - playerRect.top;
+        newHeightPx = Math.max(280, Math.min(window.innerHeight * 0.95, newHeightPx));
+        const newHeightVh = (newHeightPx / window.innerHeight) * 100;
+        document.documentElement.style.setProperty("--player-height", newHeightVh + "vh");
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (isResizingHorizontal) {
+        isResizingHorizontal = false;
+        resizeBar.classList.remove("active");
+        playerHorizontalHandle.style.background = "transparent";
+        document.body.style.cursor = "default";
+      }
+      if (isResizingVertical) {
+        isResizingVertical = false;
+        verticalResizeBar.classList.remove("active");
+        document.body.style.cursor = "default";
+      }
+    });
   }
 
   async function main() {
@@ -446,7 +496,7 @@
     }
   }
 
-  // イベント設定
+  // 初期化
   toggleHistoryBtn.addEventListener("click", toggleSidebar);
   toggleLaterBtn.addEventListener("click", toggleSidebar);
   clearHistoryBtn.addEventListener("click", clearHistory);
