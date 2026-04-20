@@ -56,32 +56,40 @@
     }
     .history-item:hover, .later-item:hover { background: #f5f5f5; }
 
-    /* 白い枠を完全に削除した黒丸ボタン */
-    #toggleHistoryBtn, #toggleLaterBtn {
+    /* 画像と同じデザイン：白い背景のグループ + 黒丸ボタン */
+    #toggle-container {
       position: fixed;
       left: 20px;
-      width: 54px;
-      height: 54px;
-      background: #111111;
+      top: 25px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 60px;
+      padding: 8px 6px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #toggleHistoryBtn, #toggleLaterBtn {
+      width: 52px;
+      height: 52px;
+      background: #1a1a1a;
       color: white;
       border: none;
       border-radius: 50%;
-      font-size: 28px;
+      font-size: 26px;
       cursor: pointer;
-      z-index: 300;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       transition: all 0.3s ease;
     }
-    #toggleHistoryBtn { top: 25px; }
-    #toggleLaterBtn { top: 92px; }
 
     #toggleHistoryBtn:hover, #toggleLaterBtn:hover {
-      background: #000000;
+      background: #000;
       transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
     }
 
     #main {
@@ -164,8 +172,11 @@
   </style>
 </head>
 <body>
-  <button id="toggleHistoryBtn">›</button>
-  <button id="toggleLaterBtn">›</button>
+  <!-- 白い背景のグループ -->
+  <div id="toggle-container">
+    <button id="toggleHistoryBtn">›</button>
+    <button id="toggleLaterBtn">›</button>
+  </div>
 
   <div id="sidebar">
     <div class="sidebar-section" id="historySection">
@@ -209,6 +220,7 @@
   </div>
 
 <script>
+  // ここからスクリプト（前回と同じ）
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
   const historyKey = "frann_history_fラン就職チャンネル";
@@ -253,7 +265,7 @@
     updateSidebar();
   }
 
-  // 以下の関数は前回と同じ（省略せず全部記載）
+  // 以下は前回と同じ関数（省略せず記載）
   function loadHistory() { return JSON.parse(localStorage.getItem(historyKey) || "[]"); }
   function saveHistory(video) {
     let history = loadHistory();
