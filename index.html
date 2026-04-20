@@ -16,7 +16,7 @@
       font-family: Arial, sans-serif;
       background: #f8f8f8;
       display: flex;
-      padding-left: 60px;
+      padding-left: 65px;   /* 少し余裕を持たせた */
       gap: 15px;
     }
 
@@ -36,7 +36,7 @@
     /* サイドバー */
     .sidebar {
       position: fixed;
-      left: 60px;
+      left: 65px;
       top: 15px;
       width: 0;
       overflow: hidden;
@@ -53,12 +53,10 @@
     #laterSidebar {
       top: auto;
       bottom: 15px;
-      left: 60px;
+      left: 65px;
     }
 
-    #sidebar-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-    }
+    #sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     h3 { margin: 8px 0 6px 0; font-size: 16px; }
     .section-title { font-size: 15px; color: #555; margin: 16px 0 8px 0; }
 
@@ -116,12 +114,8 @@
       font-size: 15px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      outline: none;
     }
-    #searchInput:focus {
-      border-color: #ff0000;
-      box-shadow: 0 0 0 3px rgba(255,0,0,0.1);
-    }
+    #searchInput:focus { border-color: #ff0000; }
 
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 12px; }
     #videos {
@@ -140,7 +134,7 @@
     }
     .video-item:hover { transform: translateY(-4px); }
 
-    .thumbnail img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+    .thumbnail img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
     .play-btn {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
@@ -274,9 +268,8 @@
   let currentActive = null;
   let currentVideoEl = null;
 
-  // === はみ出し防止の核心 ===
   function updateMainMargin() {
-    let margin = 60;
+    let margin = 65;
     if (historySidebar.classList.contains("open")) margin += 375;
     if (laterSidebar.classList.contains("open")) margin += 375;
     main.style.marginLeft = margin + "px";
@@ -345,14 +338,15 @@
   function filterVideos(keyword) {
     const lower = keyword.toLowerCase();
     document.querySelectorAll('.video-item').forEach(item => {
-      const title = item.querySelector('.video-title').textContent.toLowerCase();
+      const titleEl = item.querySelector('.video-title');
+      const title = titleEl ? titleEl.textContent.toLowerCase() : "";
       item.style.display = title.includes(lower) ? '' : 'none';
     });
   }
 
   async function fetchAllVideos() {
     let items = [], pageToken = "", pageCount = 0;
-    loadingEl.textContent = "動画を高速取得中...";
+    loadingEl.textContent = "全動画を読み込み中...（高速化版）";
     do {
       const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${pageToken}`;
       const res = await fetch(url);
@@ -361,7 +355,7 @@
       items = items.concat(data.items || []);
       pageToken = data.nextPageToken;
       pageCount++;
-      loadingEl.textContent = `取得中... ${items.length}本`;
+      loadingEl.textContent = `取得中... ${items.length}本 (${pageCount}ページ)`;
     } while (pageToken && pageCount < 20);
     return items;
   }
@@ -402,7 +396,7 @@
   }
 
   let isResizingHorizontal = false, isResizingVertical = false;
-  function initResize() {
+  function initResize() { /* 省略（安定版） */ 
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
@@ -416,7 +410,7 @@
 
     document.addEventListener("mousemove", (e) => {
       if (isResizingHorizontal) {
-        const mainRect = document.getElementById("main").getBoundingClientRect();
+        const mainRect = main.getBoundingClientRect();
         let w = ((e.clientX - mainRect.left) / mainRect.width) * 100;
         w = Math.max(25, Math.min(70, w));
         document.documentElement.style.setProperty("--player-width", w + "%");
@@ -454,7 +448,7 @@
       renderAllVideos(videos);
       renderHistory();
       renderWatchLater();
-      updateMainMargin();
+      updateMainMargin();        // ここで確実に適用
     } catch (err) {
       console.error(err);
       videosContainer.innerHTML = `<p style="color:red;padding:20px;">読み込みエラー: ${err.message}</p>`;
