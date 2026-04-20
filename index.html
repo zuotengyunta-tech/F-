@@ -10,21 +10,21 @@
     }
     html, body {
       margin: 0;
-      padding: 0;           /* bodyのパディングを最小化 */
+      padding: 0;
       height: 100%;
       scroll-behavior: smooth;
       background: #f8f8f8;
+      overflow: hidden;
     }
 
     body {
       font-family: Arial, sans-serif;
       display: flex;
-      padding: 15px;        /* ここは残すが、ボタン位置で調整 */
+      padding: 15px 15px 15px 0;   /* 左のパディングを0に近づける */
       gap: 15px;
-      overflow: hidden;
     }
 
-    /* サイドバー（変更なし） */
+    /* サイドバー */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -38,28 +38,26 @@
     }
     #sidebar.open { width: 360px; }
 
-    /* ==================== 左側ボタン：白い隙間を徹底除去 ==================== */
+    /* ====================== 左側ボタン：左の隙間完全除去 + 浮かせる ====================== */
     #toggle-container {
       position: fixed;
-      left: 8px;            /* さらに左に寄せる */
-      top: 15px;
+      left: -2px;               /* 左端にぴったり（少しはみ出してもOK） */
+      top: 20px;
       background: transparent;
-      background: none;
       padding: 0;
       margin: 0;
-      z-index: 99999;       /* 非常に高いz-index */
+      z-index: 99999;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      border: 0;
+      gap: 14px;
+      border: none;
       box-shadow: none;
-      pointer-events: auto; /* クリック可能に */
     }
 
     #toggleHistoryBtn, #toggleLaterBtn {
-      width: 54px;
-      height: 54px;
-      background: #111111;
+      width: 56px;
+      height: 56px;
+      background: #0f0f0f;
       color: white;
       border: none;
       border-radius: 50%;
@@ -68,17 +66,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);   /* 影は控えめに */
-      transition: all 0.25s ease;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);   /* 浮かせ感を強調 */
+      transition: all 0.3s ease;
+      position: relative;
     }
 
     #toggleHistoryBtn:hover, #toggleLaterBtn:hover {
-      background: #000;
-      transform: scale(1.12);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.65);
+      background: #000000;
+      transform: scale(1.18) translateX(2px);   /* 少し右に浮かせる動き */
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.7);
     }
 
-    /* 以下は変更なし（機能維持） */
+    /* 以下は機能維持（変更なし） */
     .sidebar-section { margin-bottom: 28px; }
     .sidebar-section:last-child { margin-bottom: 0; }
     #sidebar h3 {
@@ -185,7 +184,7 @@
 </head>
 <body>
 
-  <!-- 白い隙間を徹底的に除去したトグルボタン -->
+  <!-- 左の隙間を完全に無くし、ボタンを浮かせた状態 -->
   <div id="toggle-container">
     <button id="toggleHistoryBtn">›</button>
     <button id="toggleLaterBtn">›</button>
@@ -231,7 +230,7 @@
   </div>
 
 <script>
-  // スクリプト部分は前回と同じ（機能維持）
+  // スクリプトは変更なし（機能維持）
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
   const playlistId = "UUqRV_ZIQhVKfxG1_WkNiRbg";
   const historyKey = "frann_history_fラン就職チャンネル";
@@ -268,6 +267,7 @@
   function toggleHistory() { isHistoryVisible = !isHistoryVisible; updateSidebar(); }
   function toggleLater() { isLaterVisible = !isLaterVisible; updateSidebar(); }
 
+  // 以下すべての関数は前回と同じなので省略せず記載
   function loadHistory() { return JSON.parse(localStorage.getItem(historyKey) || "[]"); }
   function saveHistory(video) {
     let history = loadHistory();
