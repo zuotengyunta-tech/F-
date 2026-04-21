@@ -242,12 +242,12 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
-   
+      <h2>おすすめチャンネル集（5ch追加・2分以内除外）</h2>
+  
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-   
+  
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -273,8 +273,10 @@
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
   ];
+
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
+
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -292,6 +294,7 @@
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
   const channelFilter = document.getElementById("channel-filter");
+
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
@@ -474,6 +477,7 @@
   async function main() {
     loadingEl.textContent = "全チャンネルを並列取得中...（2分以内の動画を除外）";
     videosContainer.innerHTML = "";
+    
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -502,25 +506,14 @@
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 2分以内（120秒）の動画を除外 ===
-        const durationSec = durations[videoId] || 0;
-        if (durationSec > 0 && durationSec <= 120) {
-          console.log(`⏭️ 2分以内除外: ${rawTitle} (${durationSec}秒)`);
+        // === 完全に2分以内を除外（duration取れない動画も除外） ===
+        const durationSec = durations[videoId];
+        if (!durationSec || durationSec <= 120) {
+          console.log(`⏭️ 除外: ${rawTitle} (${durationSec || "不明"}秒)`);
           return;
         }
 
-        // === ショート除外（最低限のみ残しました） ===
-        const lowerTitle = rawTitle.toLowerCase();
-        if (lowerTitle.includes("short") ||
-            lowerTitle.includes("ショート") ||
-            lowerTitle.includes("ショーツ") ||
-            lowerTitle.includes("#short") ||
-            lowerTitle.includes("1分") ||
-            lowerTitle.includes("60秒") ||
-            lowerTitle.includes("ティック") ||
-            lowerTitle.includes("tiktok")) {
-          return;
-        }
+        // ショート除外ワードはすべて削除（ご要望通り）
 
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
@@ -630,6 +623,7 @@
     });
   }
 
+  // 初期化
   initResize();
   main();
 </script>
