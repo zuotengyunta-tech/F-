@@ -22,7 +22,7 @@
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
-    /* サイドバー（一切変更なし） */
+    /* サイドバー（一切変更なし・削らず維持） */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -509,9 +509,9 @@
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 1分以内動画を除外 ===
+        // === 2分以内（120秒）まで除外 ===
         const durationSec = durations[videoId] || 0;
-        if (durationSec > 0 && durationSec <= 90) return;   // 90秒までに拡張
+        if (durationSec > 0 && durationSec <= 120) return;
 
         // === ショート超強化除外 ===
         const lowerTitle = rawTitle.toLowerCase();
@@ -523,6 +523,14 @@
             lowerTitle.includes("60秒") ||
             lowerTitle.includes("短編") ||
             lowerTitle.includes("縦型") ||
+            lowerTitle.includes("恋愛相談") ||
+            lowerTitle.includes("結婚前") ||
+            lowerTitle.includes("人生の") ||
+            lowerTitle.includes("前提") ||
+            lowerTitle.includes("体験") ||
+            lowerTitle.includes("非行") ||
+            lowerTitle.includes("能力の") ||
+            lowerTitle.includes("平均か") ||
             lowerTitle.includes("ティック") ||
             lowerTitle.includes("tiktok")) {
           return;
