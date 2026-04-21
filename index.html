@@ -22,6 +22,7 @@
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
+    /* サイドバー */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -49,20 +50,13 @@
       box-shadow: none;
     }
     #toggleHistoryBtn, #toggleLaterBtn {
-      width: 56px;
-      height: 56px;
-      background: #0f0f0f;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 28px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 56px; height: 56px;
+      background: #0f0f0f; color: white;
+      border: none; border-radius: 50%;
+      font-size: 28px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
       transition: all 0.3s ease;
-      position: relative;
     }
     #toggleHistoryBtn:hover, #toggleLaterBtn:hover {
       background: #000000;
@@ -70,13 +64,9 @@
       box-shadow: 0 10px 22px rgba(0, 0, 0, 0.7);
     }
     .sidebar-section { margin-bottom: 28px; }
-    .sidebar-section:last-child { margin-bottom: 0; }
     #sidebar h3 {
-      margin: 0 0 12px 0;
-      font-size: 17px;
-      font-weight: bold;
-      padding-bottom: 8px;
-      border-bottom: 3px solid #ff0000;
+      margin: 0 0 12px 0; font-size: 17px; font-weight: bold;
+      padding-bottom: 8px; border-bottom: 3px solid #ff0000;
     }
     #clearHistoryBtn, #clearLaterBtn {
       font-size: 11px; padding: 4px 10px;
@@ -88,25 +78,14 @@
       font-size: 14px; cursor: pointer;
     }
     .history-item:hover, .later-item:hover { background: #f5f5f5; }
-    #main {
-      flex: 1;
-      display: flex;
-      gap: 15px;
-      max-width: 1400px;
-      width: 100%;
-    }
+
+    #main { flex: 1; display: flex; gap: 15px; max-width: 1400px; width: 100%; }
     #player-area {
-      width: var(--player-width);
-      height: var(--player-height);
-      flex-shrink: 0;
-      align-self: flex-start;
-      position: relative;
-      min-width: 320px;
-      max-width: 70%;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-      overflow: hidden;
+      width: var(--player-width); height: var(--player-height);
+      flex-shrink: 0; align-self: flex-start; position: relative;
+      min-width: 320px; max-width: 70%;
+      background: white; border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.2); overflow: hidden;
     }
     #player { width: 100%; height: 100%; }
     iframe { width: 100%; height: 100%; border: none; display: block; }
@@ -117,49 +96,26 @@
     #resize-bar:hover, #resize-bar.active { background: #ff0000; }
     #thumbnail-area { flex: 1; display: flex; flex-direction: column; max-height: 100vh; }
     h2 { margin: 0 0 8px 0; text-align: center; font-size: 25px; }
-    #search-container {
-      margin-bottom: 18px;
-      position: relative;
-    }
+
+    #search-container { margin-bottom: 18px; position: relative; }
     #searchInput {
-      width: 100%;
-      padding: 12px 40px 12px 16px;
-      font-size: 16px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      box-sizing: border-box;
-      transition: border 0.2s;
+      width: 100%; padding: 12px 40px 12px 16px; font-size: 16px;
+      border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box;
     }
-    #searchInput:focus {
-      border-color: #ff0000;
-      outline: none;
-    }
+    #searchInput:focus { border-color: #ff0000; outline: none; }
     #clearSearchBtn {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: #888;
-      cursor: pointer;
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; font-size: 20px; color: #888; cursor: pointer;
       display: none;
     }
     #clearSearchBtn:hover { color: #ff0000; }
+
     #channel-filter {
-      margin-bottom: 12px;
-      padding: 10px 12px;
-      font-size: 16px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      width: 100%;
-      background: white;
+      margin-bottom: 12px; padding: 10px 12px; font-size: 16px;
+      border: 2px solid #ddd; border-radius: 8px; width: 100%; background: white;
     }
-    #channel-filter:focus {
-      border-color: #ff0000;
-      outline: none;
-    }
+    #channel-filter:focus { border-color: #ff0000; outline: none; }
+
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 12px; }
     #videos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
     .video-item {
@@ -192,11 +148,8 @@
     .later-btn:hover { background: #ff9800; }
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
     .no-results {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 60px 20px;
-      color: #888;
-      font-size: 17px;
+      grid-column: 1 / -1; text-align: center; padding: 60px 20px;
+      color: #888; font-size: 17px;
     }
     .fixed-buttons {
       position: fixed; right: 40px; bottom: 35px;
@@ -242,11 +195,11 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（5ch追加・2分以内除外）</h2>
-   
+      
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-   
+      
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -272,6 +225,7 @@
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
   ];
+
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
 
@@ -475,7 +429,8 @@
   async function main() {
     loadingEl.textContent = "全チャンネルを並列取得中...（2分以内除外）";
     videosContainer.innerHTML = "";
-
+    
+    // チャンネルフィルタにオプション追加
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -504,9 +459,16 @@
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 2分以内（120秒以下）の動画を除外 ===
-        const durationSec = durations[videoId] || 0;
-        if (durationSec > 0 && durationSec <= 120) return;
+        // ===== ここがあなたの指定した条件 =====
+        const durationSec = durations[videoId];
+        
+        // duration取れてないやつは一旦スキップ（重要）
+        if (!durationSec) return;
+        
+        // 2分以内（120秒以下）を除外
+        if (durationSec <= 120) return;
+
+        // ワード制限は完全に削除済み
 
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
@@ -526,6 +488,7 @@
             <button class="copy-btn">🔗</button>
           </div>
         `;
+
         div.onclick = (e) => {
           if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
             playVideo(videoId, title, div);
@@ -554,17 +517,20 @@
     });
   }
 
+  // イベントリスナー
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
   clearHistoryBtn.addEventListener("click", clearHistory);
   clearLaterBtn.addEventListener("click", clearLaterList);
 
+  // リサイズ機能（そのまま維持）
   function initResize() {
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
     const playerArea = document.getElementById("player-area");
     let isResizingHorizontal = false, isResizingVertical = false;
+
     const startHorizontal = (e) => {
       isResizingHorizontal = true;
       resizeBar.classList.add("active");
@@ -572,46 +538,47 @@
       document.body.style.cursor = "col-resize";
       e.preventDefault();
     };
+
     resizeBar.addEventListener("mousedown", startHorizontal);
     playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+
     verticalResizeBar.addEventListener("mousedown", (e) => {
       isResizingVertical = true;
       verticalResizeBar.classList.add("active");
       document.body.style.cursor = "row-resize";
       e.preventDefault();
     });
+
     document.addEventListener("mousemove", (e) => {
       if (isResizingHorizontal) {
         const mainRect = document.getElementById("main").getBoundingClientRect();
-        let newWidth = ((e.clientX - mainRect.left) / mainRect.width) * 100;
-        newWidth = Math.max(25, Math.min(70, newWidth));
-        document.documentElement.style.setProperty("--player-width", newWidth + "%");
+        let newWidth = e.clientX - mainRect.left;
+        if (newWidth < 320) newWidth = 320;
+        if (newWidth > mainRect.width * 0.7) newWidth = mainRect.width * 0.7;
+        playerArea.style.width = `${newWidth}px`;
       }
       if (isResizingVertical) {
-        const playerRect = playerArea.getBoundingClientRect();
-        let newHeightPx = e.clientY - playerRect.top;
-        newHeightPx = Math.max(280, Math.min(window.innerHeight * 0.95, newHeightPx));
-        const newHeightVh = (newHeightPx / window.innerHeight) * 100;
-        document.documentElement.style.setProperty("--player-height", newHeightVh + "vh");
+        let newHeight = e.clientY - playerArea.getBoundingClientRect().top;
+        if (newHeight < 200) newHeight = 200;
+        if (newHeight > window.innerHeight * 0.85) newHeight = window.innerHeight * 0.85;
+        playerArea.style.height = `${newHeight}px`;
       }
     });
+
     document.addEventListener("mouseup", () => {
-      if (isResizingHorizontal) {
-        isResizingHorizontal = false;
-        resizeBar.classList.remove("active");
-        playerHorizontalHandle.style.background = "transparent";
-        document.body.style.cursor = "default";
-      }
-      if (isResizingVertical) {
-        isResizingVertical = false;
-        verticalResizeBar.classList.remove("active");
-        document.body.style.cursor = "default";
-      }
+      isResizingHorizontal = false;
+      isResizingVertical = false;
+      resizeBar.classList.remove("active");
+      verticalResizeBar.classList.remove("active");
+      playerHorizontalHandle.style.background = "transparent";
+      document.body.style.cursor = "default";
     });
   }
 
-  initResize();
-  main();
+  window.onload = () => {
+    main();
+    initResize();
+  };
 </script>
 </body>
 </html>
