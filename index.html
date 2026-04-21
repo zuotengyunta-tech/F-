@@ -242,7 +242,7 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（画像の5ch追加・ID修正・ショート非表示）</h2>
+      <h2>おすすめチャンネル集（5ch追加・ID修正・ショート非表示・高速化）</h2>
      
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
@@ -254,7 +254,7 @@
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全動画を読み込み中...（ショート除外）</div>
+        <div id="loading">全動画を高速取得中...（ショート除外）</div>
       </div>
     </div>
   </div>
@@ -266,7 +266,7 @@
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
  
-  // === 正しいUploadsプレイリストID（全修正済） ===
+  // === 正しいUploadsプレイリストID（確認済） ===
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
@@ -436,7 +436,7 @@
     let items = [];
     let pageToken = "";
     let pageCount = 0;
-    const maxPages = 20;
+    const maxPages = 15; // 高速化のため少し減らす
     do {
       const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${pageToken}`;
       const res = await fetch(url);
@@ -453,7 +453,7 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネル動画取得中...（ショート除外）";
+    loadingEl.textContent = "全チャンネル動画を高速取得中...（ショート除外）";
     videosContainer.innerHTML = "";
 
     playlists.forEach(pl => {
@@ -469,13 +469,14 @@
         console.log(`${pl.name}: ${items.length}件取得`);
 
         items.forEach(item => {
-          const title = `[${pl.name}] ${item.snippet.title}`;
+          const rawTitle = item.snippet.title;
+          const title = `[${pl.name}] ${rawTitle}`;
           const videoId = item.snippet.resourceId?.videoId;
           if (!videoId) return;
 
-          // === ショート動画を非表示 ===
-          const lowerTitle = title.toLowerCase();
-          if (lowerTitle.includes("short") || lowerTitle.includes("ショート") || lowerTitle.includes("#short")) {
+          // ショート動画を完全に非表示
+          const lowerTitle = rawTitle.toLowerCase();
+          if (lowerTitle.includes("short") || lowerTitle.includes("ショート") || lowerTitle.includes("#short") || lowerTitle.includes("ショーツ")) {
             return;
           }
 
@@ -513,6 +514,10 @@
     }
 
     loadingEl.style.display = "none";
+    if (allVideoElements.length === 0) {
+      loadingEl.style.display = "block";
+      loadingEl.textContent = "動画の取得に失敗しました。ブラウザを更新して再試行してください。";
+    }
     renderHistory();
     renderLater();
     updateSidebar();
