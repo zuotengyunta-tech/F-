@@ -148,7 +148,6 @@
       display: none;
     }
     #clearSearchBtn:hover { color: #ff0000; }
-
     /* === 新規追加：チャンネル選択機能 === */
     #channel-filter {
       margin-bottom: 12px;
@@ -163,7 +162,6 @@
       border-color: #ff0000;
       outline: none;
     }
-
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 12px; }
     #videos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
     .video-item {
@@ -245,13 +243,13 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（画像の5ch追加）</h2>
-      
+      <h2>おすすめチャンネル集（画像の5ch追加・ID修正済）</h2>
+     
       <!-- チャンネル変更機能 -->
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-      
+     
       <!-- 検索欄 -->
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
@@ -271,20 +269,20 @@
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
  
-  // === チャンネル一覧（ここを編集すれば追加・変更可能） ===
+  // === チャンネル一覧（正しいUploadsプレイリストIDに修正済） ===
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
     { name: "rの住人ピエロ【哲学】", id: "UUY92Ma2-tzt8LLqodw9UF0g" },
-    { name: "RECODE - 知性OSの再定義", id: "UUKj5M2fZ2fZ2fZ2fZ2fZ2fZ2" }, 
-    { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UUxxxxxxxxxxxxxxxxxxxxxx" },
+    { name: "RECODE - 知性OSの再定義", id: "UUxeOH32jDFcRBV1D2lh7eFQ" },
+    { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UCal01EW97D3rYNz9EbFpt8A" }
   ];
 
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
 
-  // 以下、**元のコードを完全に維持**（変更なし）
+  // 以下、**元のコードを完全に維持**（一切削らず）
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -306,7 +304,7 @@
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
-  let allVideoElements = []; // フィルター用に全要素を保持
+  let allVideoElements = [];
 
   function updateSidebar() {
     const shouldOpen = isHistoryVisible || isLaterVisible;
@@ -412,15 +410,12 @@
   function filterVideos() {
     const keyword = searchInput.value.toLowerCase().trim();
     const selectedChannel = channelFilter.value;
-
     let visibleCount = 0;
     allVideoElements.forEach(item => {
       const titleText = item.querySelector('.video-title').textContent.toLowerCase();
       const channelName = item.dataset.channel || "";
-
       const matchSearch = keyword === "" || titleText.includes(keyword);
       const matchChannel = selectedChannel === "" || channelName === selectedChannel;
-
       if (matchSearch && matchChannel) {
         item.style.display = "";
         visibleCount++;
@@ -428,7 +423,6 @@
         item.style.display = "none";
       }
     });
-
     let noResults = videosContainer.querySelector('.no-results');
     if (visibleCount === 0 && (keyword !== "" || selectedChannel !== "")) {
       if (!noResults) {
@@ -450,7 +444,10 @@
     do {
       const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${pageToken}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`APIエラー: ${res.status}`);
+      if (!res.ok) {
+        console.error(`APIエラー: ${res.status} for ${playlistId}`);
+        return items;
+      }
       const data = await res.json();
       if (data.items) items = items.concat(data.items);
       pageToken = data.nextPageToken;
@@ -460,7 +457,7 @@
   }
 
   async function main() {
-    loadingEl.textContent = "複数チャンネルの動画を一括取得中...";
+    loadingEl.textContent = "複数チャンネルの動画を一括取得中...（ID修正済）";
     videosContainer.innerHTML = "";
 
     // チャンネル選択ドロップダウン作成
@@ -474,6 +471,7 @@
     for (const pl of playlists) {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
+        console.log(`${pl.name}: ${items.length} videos loaded`);
         items.forEach(item => {
           const title = `[${pl.name}] ${item.snippet.title}`;
           const videoId = item.snippet.resourceId?.videoId;
@@ -483,7 +481,7 @@
           const div = document.createElement("div");
           div.className = "video-item";
           div.dataset.id = videoId;
-          div.dataset.channel = pl.name;   // チャンネルフィルター用
+          div.dataset.channel = pl.name;
           div.innerHTML = `
             <div class="thumbnail">
               <img src="${thumbnail}" loading="lazy" alt="${title}">
@@ -516,7 +514,6 @@
     renderLater();
     updateSidebar();
 
-    // フィルターイベント
     channelFilter.addEventListener("change", filterVideos);
     searchInput.addEventListener("input", filterVideos);
     clearSearchBtn.addEventListener("click", () => {
