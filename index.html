@@ -243,11 +243,11 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
-   
+  
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-   
+  
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -273,8 +273,10 @@
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
   ];
+
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
+
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -292,6 +294,7 @@
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
   const channelFilter = document.getElementById("channel-filter");
+
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
@@ -427,23 +430,33 @@
     }
   }
 
+  // ==================== ここを修正 =====================
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds.join(',')}&key=${apiKey}`;
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      const durations = {};
-      (data.items || []).forEach(item => {
-        const seconds = parseISO8601Duration(item.contentDetails.duration);
-        durations[item.id] = seconds;
-      });
-      return durations;
-    } catch (e) {
-      console.error("Duration取得失敗", e);
-      return {};
+
+    const durations = {};
+
+    // 50個ずつに分割して取得（API制限対応）
+    for (let i = 0; i < videoIds.length; i += 50) {
+      const batch = videoIds.slice(i, i + 50);
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${apiKey}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const data = await res.json();
+
+        (data.items || []).forEach(item => {
+          const seconds = parseISO8601Duration(item.contentDetails.duration);
+          durations[item.id] = seconds;
+        });
+      } catch (e) {
+        console.error("Duration取得失敗", e);
+      }
     }
+    return durations;
   }
+  // ====================================================
 
   function parseISO8601Duration(duration) {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
@@ -474,6 +487,7 @@
   async function main() {
     loadingEl.textContent = "全チャンネルを並列取得中...（2分以内の動画を除外）";
     videosContainer.innerHTML = "";
+
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -509,7 +523,7 @@
           return;
         }
 
-        // === ショート除外（最低限のみ残しました） ===
+        // === ショート除外 ===
         const lowerTitle = rawTitle.toLowerCase();
         if (lowerTitle.includes("short") ||
             lowerTitle.includes("ショート") ||
