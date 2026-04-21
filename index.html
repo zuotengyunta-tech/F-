@@ -242,7 +242,7 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（5ch追加・ID修正・1分以内＆ショート強化除外）</h2>
+      <h2>おすすめチャンネル集（5ch追加・1分以内＆ショート超強化除外）</h2>
      
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
@@ -254,7 +254,7 @@
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全チャンネルを並列取得中...（1分以内＋ショート強化除外）</div>
+        <div id="loading">全チャンネルを並列取得中...（ショート超強化除外）</div>
       </div>
     </div>
   </div>
@@ -476,7 +476,7 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネルを並列取得中...（1分以内＋ショート強化除外）";
+    loadingEl.textContent = "全チャンネルを並列取得中...（ショート超強化除外）";
     videosContainer.innerHTML = "";
 
     playlists.forEach(pl => {
@@ -511,17 +511,20 @@
 
         // === 1分以内動画を除外 ===
         const durationSec = durations[videoId] || 0;
-        if (durationSec > 0 && durationSec <= 60) return;
+        if (durationSec > 0 && durationSec <= 90) return;   // 90秒までに拡張
 
-        // === ショート動画をより強力に除外 ===
+        // === ショート超強化除外 ===
         const lowerTitle = rawTitle.toLowerCase();
         if (lowerTitle.includes("short") || 
             lowerTitle.includes("ショート") || 
             lowerTitle.includes("ショーツ") || 
             lowerTitle.includes("#short") ||
-            lowerTitle.includes("ショート動画") ||
             lowerTitle.includes("1分") ||
-            lowerTitle.includes("60秒")) {
+            lowerTitle.includes("60秒") ||
+            lowerTitle.includes("短編") ||
+            lowerTitle.includes("縦型") ||
+            lowerTitle.includes("ティック") ||
+            lowerTitle.includes("tiktok")) {
           return;
         }
 
