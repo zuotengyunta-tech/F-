@@ -242,19 +242,19 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（5ch追加・1分以内＆ショート超強化除外）</h2>
-     
+      <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
+   
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-     
+   
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全チャンネルを並列取得中...（ショート超強化除外）</div>
+        <div id="loading">全チャンネルを並列取得中...（2分以内の動画を除外）</div>
       </div>
     </div>
   </div>
@@ -265,7 +265,6 @@
 
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
- 
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
@@ -274,10 +273,8 @@
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
   ];
-
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
-
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -295,7 +292,6 @@
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
   const channelFilter = document.getElementById("channel-filter");
-
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
@@ -476,9 +472,8 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネルを並列取得中...（ショート超強化除外）";
+    loadingEl.textContent = "全チャンネルを並列取得中...（2分以内の動画を除外）";
     videosContainer.innerHTML = "";
-
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -491,9 +486,7 @@
         const items = await fetchAllVideosFromPlaylist(pl.id);
         const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
         const durations = await getVideoDurations(videoIds);
-
         console.log(`✅ ${pl.name}: ${items.length}件取得`);
-
         return { pl, items, durations };
       } catch (err) {
         console.error(`❌ ${pl.name} 取得失敗`, err);
@@ -509,28 +502,21 @@
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 2分以内（120秒）まで除外 ===
+        // === 2分以内（120秒）の動画を除外 ===
         const durationSec = durations[videoId] || 0;
-        if (durationSec > 0 && durationSec <= 120) return;
+        if (durationSec > 0 && durationSec <= 120) {
+          console.log(`⏭️ 2分以内除外: ${rawTitle} (${durationSec}秒)`);
+          return;
+        }
 
-        // === ショート超強化除外 ===
+        // === ショート除外（最低限のみ残しました） ===
         const lowerTitle = rawTitle.toLowerCase();
-        if (lowerTitle.includes("short") || 
-            lowerTitle.includes("ショート") || 
-            lowerTitle.includes("ショーツ") || 
+        if (lowerTitle.includes("short") ||
+            lowerTitle.includes("ショート") ||
+            lowerTitle.includes("ショーツ") ||
             lowerTitle.includes("#short") ||
             lowerTitle.includes("1分") ||
             lowerTitle.includes("60秒") ||
-            lowerTitle.includes("短編") ||
-            lowerTitle.includes("縦型") ||
-            lowerTitle.includes("恋愛相談") ||
-            lowerTitle.includes("結婚前") ||
-            lowerTitle.includes("人生の") ||
-            lowerTitle.includes("前提") ||
-            lowerTitle.includes("体験") ||
-            lowerTitle.includes("非行") ||
-            lowerTitle.includes("能力の") ||
-            lowerTitle.includes("平均か") ||
             lowerTitle.includes("ティック") ||
             lowerTitle.includes("tiktok")) {
           return;
@@ -554,6 +540,7 @@
             <button class="copy-btn">🔗</button>
           </div>
         `;
+
         div.onclick = (e) => {
           if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
             playVideo(videoId, title, div);
@@ -593,6 +580,7 @@
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
     const playerArea = document.getElementById("player-area");
     let isResizingHorizontal = false, isResizingVertical = false;
+
     const startHorizontal = (e) => {
       isResizingHorizontal = true;
       resizeBar.classList.add("active");
@@ -600,14 +588,17 @@
       document.body.style.cursor = "col-resize";
       e.preventDefault();
     };
+
     resizeBar.addEventListener("mousedown", startHorizontal);
     playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+
     verticalResizeBar.addEventListener("mousedown", (e) => {
       isResizingVertical = true;
       verticalResizeBar.classList.add("active");
       document.body.style.cursor = "row-resize";
       e.preventDefault();
     });
+
     document.addEventListener("mousemove", (e) => {
       if (isResizingHorizontal) {
         const mainRect = document.getElementById("main").getBoundingClientRect();
@@ -623,6 +614,7 @@
         document.documentElement.style.setProperty("--player-height", newHeightVh + "vh");
       }
     });
+
     document.addEventListener("mouseup", () => {
       if (isResizingHorizontal) {
         isResizingHorizontal = false;
