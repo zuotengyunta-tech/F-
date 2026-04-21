@@ -243,11 +243,11 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
- 
+  
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
- 
+  
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -300,7 +300,6 @@
   let isLaterVisible = false;
   let allVideoElements = [];
 
-  // 以下、サイドバー・履歴・後で見る・再生・コピー等の関数は一切変更なし（省略せず維持）
   function updateSidebar() {
     const shouldOpen = isHistoryVisible || isLaterVisible;
     sidebar.classList.toggle("open", shouldOpen);
@@ -309,8 +308,10 @@
     historySection.style.display = isHistoryVisible ? "block" : "none";
     laterSection.style.display = isLaterVisible ? "block" : "none";
   }
+
   function toggleHistory() { isHistoryVisible = !isHistoryVisible; updateSidebar(); }
   function toggleLater() { isLaterVisible = !isLaterVisible; updateSidebar(); }
+
   function loadHistory() { return JSON.parse(localStorage.getItem(historyKey) || "[]"); }
   function saveHistory(video) {
     let history = loadHistory();
@@ -331,6 +332,7 @@
       historyBox.appendChild(div);
     });
   }
+
   function loadLater() { return JSON.parse(localStorage.getItem(laterKey) || "[]"); }
   function saveLater(video) {
     let later = loadLater();
@@ -355,6 +357,7 @@
       laterBox.appendChild(div);
     });
   }
+
   function clearHistory() {
     if (confirm("再生履歴をすべて削除しますか？")) {
       localStorage.removeItem(historyKey);
@@ -367,6 +370,7 @@
       renderLater();
     }
   }
+
   function playVideo(videoId, title, videoItemElement) {
     player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     if (currentActive) currentActive.classList.remove("active");
@@ -374,6 +378,7 @@
     currentActive = videoItemElement;
     saveHistory({ id: videoId, title });
   }
+
   function copyLink(videoId) {
     const url = `https://www.youtube.com/watch?v=${videoId}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -384,6 +389,7 @@
       setTimeout(() => { btn.textContent = original; btn.style.background = "rgba(0,0,0,0.85)"; }, 1600);
     });
   }
+
   function addToLater(videoId, title) {
     saveLater({ id: videoId, title });
     const btn = event.currentTarget;
@@ -394,6 +400,7 @@
       btn.textContent = "後で見る";
     }, 1200);
   }
+
   function filterVideos() {
     const keyword = searchInput.value.toLowerCase().trim();
     const selectedChannel = channelFilter.value;
@@ -423,21 +430,22 @@
     }
   }
 
-  // ==================== 高速化：duration取得関数 ====================
+  // ==================== ここを修正 =====================
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
 
-    const uniqueIds = [...new Set(videoIds)]; // 重複除去
     const durations = {};
 
-    for (let i = 0; i < uniqueIds.length; i += 50) {
-      const batch = uniqueIds.slice(i, i + 50);
+    // 50個ずつに分割して取得（API制限対応）
+    for (let i = 0; i < videoIds.length; i += 50) {
+      const batch = videoIds.slice(i, i + 50);
       const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${apiKey}`;
 
       try {
         const res = await fetch(url);
         if (!res.ok) continue;
         const data = await res.json();
+
         (data.items || []).forEach(item => {
           const seconds = parseISO8601Duration(item.contentDetails.duration);
           durations[item.id] = seconds;
@@ -448,6 +456,7 @@
     }
     return durations;
   }
+  // ====================================================
 
   function parseISO8601Duration(duration) {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
@@ -475,9 +484,8 @@
     return items;
   }
 
-  // ==================== 高速化：main関数（全動画IDをまとめて処理） ====================
   async function main() {
-    loadingEl.textContent = "チャンネル取得中...（並列）";
+    loadingEl.textContent = "全チャンネルを並列取得中...（2分以内の動画を除外）";
     videosContainer.innerHTML = "";
 
     playlists.forEach(pl => {
@@ -487,50 +495,44 @@
       channelFilter.appendChild(option);
     });
 
-    // 1. 全チャンネルを並列取得
     const fetchPromises = playlists.map(async (pl) => {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
-        console.log(`📥 ${pl.name}: ${items.length}件取得`);
-        return { pl, items };
+        const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
+        const durations = await getVideoDurations(videoIds);
+        console.log(`✅ ${pl.name}: ${items.length}件取得`);
+        return { pl, items, durations };
       } catch (err) {
         console.error(`❌ ${pl.name} 取得失敗`, err);
-        return { pl, items: [] };
+        return { pl, items: [], durations: {} };
       }
     });
 
     const results = await Promise.all(fetchPromises);
 
-    // 2. 全動画IDを1箇所に集めて一括でduration取得（ここが最大の高速化ポイント）
-    loadingEl.textContent = "動画の長さを一括取得中...";
-    const allVideoIds = [];
-    results.forEach(({ items }) => {
-      items.forEach(item => {
-        const vid = item.snippet.resourceId?.videoId;
-        if (vid) allVideoIds.push(vid);
-      });
-    });
-
-    const allDurations = await getVideoDurations(allVideoIds);
-
-    // 3. 表示処理
-    results.forEach(({ pl, items }) => {
+    results.forEach(({ pl, items, durations }) => {
       items.forEach(item => {
         const rawTitle = item.snippet.title;
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        const durationSec = allDurations[videoId] || 0;
+        // === 2分以内（120秒）の動画を除外 ===
+        const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) {
           console.log(`⏭️ 2分以内除外: ${rawTitle} (${durationSec}秒)`);
           return;
         }
 
+        // === ショート除外 ===
         const lowerTitle = rawTitle.toLowerCase();
-        if (lowerTitle.includes("short") || lowerTitle.includes("ショート") ||
-            lowerTitle.includes("ショーツ") || lowerTitle.includes("#short") ||
-            lowerTitle.includes("1分") || lowerTitle.includes("60秒") ||
-            lowerTitle.includes("ティック") || lowerTitle.includes("tiktok")) {
+        if (lowerTitle.includes("short") ||
+            lowerTitle.includes("ショート") ||
+            lowerTitle.includes("ショーツ") ||
+            lowerTitle.includes("#short") ||
+            lowerTitle.includes("1分") ||
+            lowerTitle.includes("60秒") ||
+            lowerTitle.includes("ティック") ||
+            lowerTitle.includes("tiktok")) {
           return;
         }
 
@@ -581,7 +583,11 @@
     });
   }
 
-  // リサイズ機能（変更なし）
+  toggleHistoryBtn.addEventListener("click", toggleHistory);
+  toggleLaterBtn.addEventListener("click", toggleLater);
+  clearHistoryBtn.addEventListener("click", clearHistory);
+  clearLaterBtn.addEventListener("click", clearLaterList);
+
   function initResize() {
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
@@ -637,11 +643,6 @@
       }
     });
   }
-
-  toggleHistoryBtn.addEventListener("click", toggleHistory);
-  toggleLaterBtn.addEventListener("click", toggleLater);
-  clearHistoryBtn.addEventListener("click", clearHistory);
-  clearLaterBtn.addEventListener("click", clearLaterList);
 
   initResize();
   main();
