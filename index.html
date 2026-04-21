@@ -242,11 +242,11 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（5ch追加・2分以内除外）</h2>
-    
+   
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-    
+   
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -272,7 +272,6 @@
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
   ];
-
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
 
@@ -476,6 +475,7 @@
   async function main() {
     loadingEl.textContent = "全チャンネルを並列取得中...（2分以内除外）";
     videosContainer.innerHTML = "";
+
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -508,8 +508,6 @@
         const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) return;
 
-        // ワード制限はすべて削除（ご要望通り）
-
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
 
@@ -528,7 +526,6 @@
             <button class="copy-btn">🔗</button>
           </div>
         `;
-
         div.onclick = (e) => {
           if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
             playVideo(videoId, title, div);
@@ -557,20 +554,17 @@
     });
   }
 
-  // サイドバー関連イベント
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
   clearHistoryBtn.addEventListener("click", clearHistory);
   clearLaterBtn.addEventListener("click", clearLaterList);
 
-  // リサイズ機能（変更なし）
   function initResize() {
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
     const playerArea = document.getElementById("player-area");
     let isResizingHorizontal = false, isResizingVertical = false;
-
     const startHorizontal = (e) => {
       isResizingHorizontal = true;
       resizeBar.classList.add("active");
@@ -578,48 +572,46 @@
       document.body.style.cursor = "col-resize";
       e.preventDefault();
     };
-
     resizeBar.addEventListener("mousedown", startHorizontal);
     playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
-
     verticalResizeBar.addEventListener("mousedown", (e) => {
       isResizingVertical = true;
       verticalResizeBar.classList.add("active");
       document.body.style.cursor = "row-resize";
       e.preventDefault();
     });
-
     document.addEventListener("mousemove", (e) => {
       if (isResizingHorizontal) {
         const mainRect = document.getElementById("main").getBoundingClientRect();
-        let newWidth = e.clientX - mainRect.left;
-        if (newWidth < 320) newWidth = 320;
-        if (newWidth > mainRect.width * 0.7) newWidth = mainRect.width * 0.7;
-        playerArea.style.width = `${newWidth}px`;
+        let newWidth = ((e.clientX - mainRect.left) / mainRect.width) * 100;
+        newWidth = Math.max(25, Math.min(70, newWidth));
+        document.documentElement.style.setProperty("--player-width", newWidth + "%");
       }
       if (isResizingVertical) {
-        let newHeight = e.clientY - playerArea.getBoundingClientRect().top;
-        if (newHeight < 200) newHeight = 200;
-        if (newHeight > window.innerHeight * 0.85) newHeight = window.innerHeight * 0.85;
-        playerArea.style.height = `${newHeight}px`;
+        const playerRect = playerArea.getBoundingClientRect();
+        let newHeightPx = e.clientY - playerRect.top;
+        newHeightPx = Math.max(280, Math.min(window.innerHeight * 0.95, newHeightPx));
+        const newHeightVh = (newHeightPx / window.innerHeight) * 100;
+        document.documentElement.style.setProperty("--player-height", newHeightVh + "vh");
       }
     });
-
     document.addEventListener("mouseup", () => {
-      isResizingHorizontal = false;
-      isResizingVertical = false;
-      resizeBar.classList.remove("active");
-      verticalResizeBar.classList.remove("active");
-      playerHorizontalHandle.style.background = "transparent";
-      document.body.style.cursor = "default";
+      if (isResizingHorizontal) {
+        isResizingHorizontal = false;
+        resizeBar.classList.remove("active");
+        playerHorizontalHandle.style.background = "transparent";
+        document.body.style.cursor = "default";
+      }
+      if (isResizingVertical) {
+        isResizingVertical = false;
+        verticalResizeBar.classList.remove("active");
+        document.body.style.cursor = "default";
+      }
     });
   }
 
-  // 初期化
-  window.onload = () => {
-    main();
-    initResize();
-  };
+  initResize();
+  main();
 </script>
 </body>
 </html>
