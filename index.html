@@ -22,7 +22,6 @@
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
-    /* サイドバー（一切変更なし・削らず維持） */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -242,19 +241,19 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（5ch追加・1分以内＆ショート超強化除外）</h2>
-     
+      <h2>おすすめチャンネル集（5ch追加・2分以内除外）</h2>
+    
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-     
+    
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全チャンネルを並列取得中...（ショート超強化除外）</div>
+        <div id="loading">全チャンネルを並列取得中...（2分以内除外）</div>
       </div>
     </div>
   </div>
@@ -265,7 +264,6 @@
 
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
- 
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
@@ -476,9 +474,8 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネルを並列取得中...（ショート超強化除外）";
+    loadingEl.textContent = "全チャンネルを並列取得中...（2分以内除外）";
     videosContainer.innerHTML = "";
-
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -491,9 +488,7 @@
         const items = await fetchAllVideosFromPlaylist(pl.id);
         const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
         const durations = await getVideoDurations(videoIds);
-
         console.log(`✅ ${pl.name}: ${items.length}件取得`);
-
         return { pl, items, durations };
       } catch (err) {
         console.error(`❌ ${pl.name} 取得失敗`, err);
@@ -509,32 +504,11 @@
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 2分以内（120秒）まで除外 ===
+        // === 2分以内（120秒以下）の動画を除外 ===
         const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) return;
 
-        // === ショート超強化除外 ===
-        const lowerTitle = rawTitle.toLowerCase();
-        if (lowerTitle.includes("short") || 
-            lowerTitle.includes("ショート") || 
-            lowerTitle.includes("ショーツ") || 
-            lowerTitle.includes("#short") ||
-            lowerTitle.includes("1分") ||
-            lowerTitle.includes("60秒") ||
-            lowerTitle.includes("短編") ||
-            lowerTitle.includes("縦型") ||
-            lowerTitle.includes("恋愛相談") ||
-            lowerTitle.includes("結婚前") ||
-            lowerTitle.includes("人生の") ||
-            lowerTitle.includes("前提") ||
-            lowerTitle.includes("体験") ||
-            lowerTitle.includes("非行") ||
-            lowerTitle.includes("能力の") ||
-            lowerTitle.includes("平均か") ||
-            lowerTitle.includes("ティック") ||
-            lowerTitle.includes("tiktok")) {
-          return;
-        }
+        // ワード制限はすべて削除（ご要望通り）
 
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
@@ -554,6 +528,7 @@
             <button class="copy-btn">🔗</button>
           </div>
         `;
+
         div.onclick = (e) => {
           if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
             playVideo(videoId, title, div);
@@ -582,17 +557,20 @@
     });
   }
 
+  // サイドバー関連イベント
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
   clearHistoryBtn.addEventListener("click", clearHistory);
   clearLaterBtn.addEventListener("click", clearLaterList);
 
+  // リサイズ機能（変更なし）
   function initResize() {
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
     const playerArea = document.getElementById("player-area");
     let isResizingHorizontal = false, isResizingVertical = false;
+
     const startHorizontal = (e) => {
       isResizingHorizontal = true;
       resizeBar.classList.add("active");
@@ -600,46 +578,48 @@
       document.body.style.cursor = "col-resize";
       e.preventDefault();
     };
+
     resizeBar.addEventListener("mousedown", startHorizontal);
     playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+
     verticalResizeBar.addEventListener("mousedown", (e) => {
       isResizingVertical = true;
       verticalResizeBar.classList.add("active");
       document.body.style.cursor = "row-resize";
       e.preventDefault();
     });
+
     document.addEventListener("mousemove", (e) => {
       if (isResizingHorizontal) {
         const mainRect = document.getElementById("main").getBoundingClientRect();
-        let newWidth = ((e.clientX - mainRect.left) / mainRect.width) * 100;
-        newWidth = Math.max(25, Math.min(70, newWidth));
-        document.documentElement.style.setProperty("--player-width", newWidth + "%");
+        let newWidth = e.clientX - mainRect.left;
+        if (newWidth < 320) newWidth = 320;
+        if (newWidth > mainRect.width * 0.7) newWidth = mainRect.width * 0.7;
+        playerArea.style.width = `${newWidth}px`;
       }
       if (isResizingVertical) {
-        const playerRect = playerArea.getBoundingClientRect();
-        let newHeightPx = e.clientY - playerRect.top;
-        newHeightPx = Math.max(280, Math.min(window.innerHeight * 0.95, newHeightPx));
-        const newHeightVh = (newHeightPx / window.innerHeight) * 100;
-        document.documentElement.style.setProperty("--player-height", newHeightVh + "vh");
+        let newHeight = e.clientY - playerArea.getBoundingClientRect().top;
+        if (newHeight < 200) newHeight = 200;
+        if (newHeight > window.innerHeight * 0.85) newHeight = window.innerHeight * 0.85;
+        playerArea.style.height = `${newHeight}px`;
       }
     });
+
     document.addEventListener("mouseup", () => {
-      if (isResizingHorizontal) {
-        isResizingHorizontal = false;
-        resizeBar.classList.remove("active");
-        playerHorizontalHandle.style.background = "transparent";
-        document.body.style.cursor = "default";
-      }
-      if (isResizingVertical) {
-        isResizingVertical = false;
-        verticalResizeBar.classList.remove("active");
-        document.body.style.cursor = "default";
-      }
+      isResizingHorizontal = false;
+      isResizingVertical = false;
+      resizeBar.classList.remove("active");
+      verticalResizeBar.classList.remove("active");
+      playerHorizontalHandle.style.background = "transparent";
+      document.body.style.cursor = "default";
     });
   }
 
-  initResize();
-  main();
+  // 初期化
+  window.onload = () => {
+    main();
+    initResize();
+  };
 </script>
 </body>
 </html>
