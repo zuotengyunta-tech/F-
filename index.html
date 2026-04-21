@@ -243,11 +243,11 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
-  
+ 
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
-  
+ 
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -430,22 +430,18 @@
     }
   }
 
-  // ==================== ここを修正 =====================
+  // ==================== 高速化版 getVideoDurations =====================
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
-
     const durations = {};
-
-    // 50個ずつに分割して取得（API制限対応）
+    // 50個ずつバッチ処理（YouTube API上限）
     for (let i = 0; i < videoIds.length; i += 50) {
       const batch = videoIds.slice(i, i + 50);
       const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${apiKey}`;
-
       try {
         const res = await fetch(url);
         if (!res.ok) continue;
         const data = await res.json();
-
         (data.items || []).forEach(item => {
           const seconds = parseISO8601Duration(item.contentDetails.duration);
           durations[item.id] = seconds;
@@ -456,7 +452,7 @@
     }
     return durations;
   }
-  // ====================================================
+  // =================================================================
 
   function parseISO8601Duration(duration) {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
@@ -470,17 +466,15 @@
   async function fetchAllVideosFromPlaylist(playlistId) {
     let items = [];
     let pageToken = "";
-    let pageCount = 0;
     const maxPages = 12;
     do {
       const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${pageToken}`;
       const res = await fetch(url);
-      if (!res.ok) return items;
+      if (!res.ok) break;
       const data = await res.json();
       if (data.items) items = items.concat(data.items);
       pageToken = data.nextPageToken;
-      pageCount++;
-    } while (pageToken && pageCount < maxPages);
+    } while (pageToken && items.length < 600); // 安全策
     return items;
   }
 
@@ -495,11 +489,12 @@
       channelFilter.appendChild(option);
     });
 
+    // すべてのプレイリストを完全に並列で取得
     const fetchPromises = playlists.map(async (pl) => {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
         const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
-        const durations = await getVideoDurations(videoIds);
+        const durations = await getVideoDurations(videoIds); // ここも並列で呼ばれる
         console.log(`✅ ${pl.name}: ${items.length}件取得`);
         return { pl, items, durations };
       } catch (err) {
@@ -510,29 +505,26 @@
 
     const results = await Promise.all(fetchPromises);
 
+    // DocumentFragmentを使ってDOM操作を最小化（これが一番効く）
+    const fragment = document.createDocumentFragment();
+
     results.forEach(({ pl, items, durations }) => {
       items.forEach(item => {
         const rawTitle = item.snippet.title;
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 2分以内（120秒）の動画を除外 ===
         const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) {
-          console.log(`⏭️ 2分以内除外: ${rawTitle} (${durationSec}秒)`);
+          // console.log(`⏭️ 2分以内除外: ${rawTitle} (${durationSec}秒)`);
           return;
         }
 
-        // === ショート除外 ===
         const lowerTitle = rawTitle.toLowerCase();
-        if (lowerTitle.includes("short") ||
-            lowerTitle.includes("ショート") ||
-            lowerTitle.includes("ショーツ") ||
-            lowerTitle.includes("#short") ||
-            lowerTitle.includes("1分") ||
-            lowerTitle.includes("60秒") ||
-            lowerTitle.includes("ティック") ||
-            lowerTitle.includes("tiktok")) {
+        if (lowerTitle.includes("short") || lowerTitle.includes("ショート") ||
+            lowerTitle.includes("ショーツ") || lowerTitle.includes("#short") ||
+            lowerTitle.includes("1分") || lowerTitle.includes("60秒") ||
+            lowerTitle.includes("ティック") || lowerTitle.includes("tiktok")) {
           return;
         }
 
@@ -563,10 +555,12 @@
         div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
         div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
 
-        videosContainer.appendChild(div);
+        fragment.appendChild(div);
         allVideoElements.push(div);
       });
     });
+
+    videosContainer.appendChild(fragment); // 一括挿入
 
     loadingEl.style.display = "none";
     renderHistory();
