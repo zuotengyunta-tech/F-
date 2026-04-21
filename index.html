@@ -22,7 +22,7 @@
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
-    /* サイドバー（一切変更なし） */
+    /* サイドバー（一切変更なし・削らず維持） */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -242,7 +242,7 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（5ch追加・ID修正・ショート非表示・高速並列取得）</h2>
+      <h2>おすすめチャンネル集（5ch追加・ID完全修正・ショート非表示・高速並列）</h2>
      
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
@@ -254,7 +254,7 @@
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全チャンネルを並列高速取得中...（ショート除外）</div>
+        <div id="loading">全チャンネルを並列高速取得中...（かもなべ修正済）</div>
       </div>
     </div>
   </div>
@@ -266,13 +266,14 @@
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
  
+  // === かもなべ塾講師チャンネルのIDを正しいものに修正（他は維持） ===
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
     { name: "rの住人ピエロ【哲学】", id: "UUY92Ma2-tzt8LLqodw9UF0g" },
     { name: "RECODE - 知性OSの再定義", id: "UUxeOH32jDFcRBV1D2lh7eFQ" },
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
-    { name: "かもなべ塾講師チャンネル", id: "UCal01EW97D3rYNz9EbFpt8A" }
+    { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }   // ← ここを修正
   ];
 
   const historyKey = "multi_channel_history";
@@ -440,7 +441,7 @@
       const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${pageToken}`;
       const res = await fetch(url);
       if (!res.ok) {
-        console.error(`APIエラー ${res.status} for ${playlistId}`);
+        console.error(`APIエラー: ${res.status} for ${playlistId}`);
         return items;
       }
       const data = await res.json();
@@ -452,7 +453,7 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネルを**並列高速取得**中...（ショート除外）";
+    loadingEl.textContent = "全チャンネルを並列高速取得中...（かもなべ修正済）";
     videosContainer.innerHTML = "";
 
     playlists.forEach(pl => {
@@ -462,7 +463,6 @@
       channelFilter.appendChild(option);
     });
 
-    // === 並列取得で大幅高速化 ===
     const fetchPromises = playlists.map(async (pl) => {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
