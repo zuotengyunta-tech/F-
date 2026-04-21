@@ -128,7 +128,7 @@
       font-size: 16px;
       border: 2px solid #ddd;
       border-radius: 8px;
-      box-sizing: box-sizing: border-box;
+      box-sizing: border-box;
       transition: border 0.2s;
     }
     #searchInput:focus {
@@ -148,6 +148,22 @@
       display: none;
     }
     #clearSearchBtn:hover { color: #ff0000; }
+
+    /* === 新規追加：チャンネル選択機能 === */
+    #channel-filter {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      width: 100%;
+      background: white;
+    }
+    #channel-filter:focus {
+      border-color: #ff0000;
+      outline: none;
+    }
+
     #videos-wrapper { flex: 1; overflow-y: auto; padding-right: 12px; }
     #videos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
     .video-item {
@@ -230,8 +246,13 @@
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（画像の5ch追加）</h2>
-     
-      <!-- 検索欄追加 -->
+      
+      <!-- チャンネル変更機能 -->
+      <select id="channel-filter">
+        <option value="">すべてのチャンネル</option>
+      </select>
+      
+      <!-- 検索欄 -->
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
@@ -249,14 +270,14 @@
 
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
-  
-  // === ここにチャンネルを追加（画像の5ch + 元のFラン） ===
+ 
+  // === チャンネル一覧（ここを編集すれば追加・変更可能） ===
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
     { name: "rの住人ピエロ【哲学】", id: "UUY92Ma2-tzt8LLqodw9UF0g" },
-    { name: "RECODE - 知性OSの再定義", id: "UUKj5M2fZ2fZ2fZ2fZ2fZ2fZ2" }, // 実際のIDに後で置き換え
-    { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UUxxxxxxxxxxxxxxxxxxxxxx" }, // 実際のIDに後で置き換え
+    { name: "RECODE - 知性OSの再定義", id: "UUKj5M2fZ2fZ2fZ2fZ2fZ2fZ2" }, 
+    { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UUxxxxxxxxxxxxxxxxxxxxxx" },
     { name: "かもなべ塾講師チャンネル", id: "UCal01EW97D3rYNz9EbFpt8A" }
   ];
 
@@ -280,10 +301,12 @@
   const topBtn = document.getElementById("topBtn");
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
+  const channelFilter = document.getElementById("channel-filter");
 
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
+  let allVideoElements = []; // フィルター用に全要素を保持
 
   function updateSidebar() {
     const shouldOpen = isHistoryVisible || isLaterVisible;
@@ -297,7 +320,6 @@
   function toggleHistory() { isHistoryVisible = !isHistoryVisible; updateSidebar(); }
   function toggleLater() { isLaterVisible = !isLaterVisible; updateSidebar(); }
 
-  // 履歴・後で見る・再生・コピー等の関数はすべて元のまま省略せず維持
   function loadHistory() { return JSON.parse(localStorage.getItem(historyKey) || "[]"); }
   function saveHistory(video) {
     let history = loadHistory();
@@ -387,25 +409,32 @@
     }, 1200);
   }
 
-  function filterVideos(keyword) {
-    const lowerKeyword = keyword.toLowerCase().trim();
-    const items = videosContainer.querySelectorAll('.video-item');
+  function filterVideos() {
+    const keyword = searchInput.value.toLowerCase().trim();
+    const selectedChannel = channelFilter.value;
+
     let visibleCount = 0;
-    items.forEach(item => {
-      const title = item.querySelector('.video-title').textContent.toLowerCase();
-      if (lowerKeyword === "" || title.includes(lowerKeyword)) {
+    allVideoElements.forEach(item => {
+      const titleText = item.querySelector('.video-title').textContent.toLowerCase();
+      const channelName = item.dataset.channel || "";
+
+      const matchSearch = keyword === "" || titleText.includes(keyword);
+      const matchChannel = selectedChannel === "" || channelName === selectedChannel;
+
+      if (matchSearch && matchChannel) {
         item.style.display = "";
         visibleCount++;
       } else {
         item.style.display = "none";
       }
     });
+
     let noResults = videosContainer.querySelector('.no-results');
-    if (visibleCount === 0 && lowerKeyword !== "") {
+    if (visibleCount === 0 && (keyword !== "" || selectedChannel !== "")) {
       if (!noResults) {
         noResults = document.createElement("div");
         noResults.className = "no-results";
-        noResults.textContent = `「${keyword}」に一致する動画は見つかりませんでした。`;
+        noResults.textContent = "条件に一致する動画はありません。";
         videosContainer.appendChild(noResults);
       }
     } else if (noResults) {
@@ -434,6 +463,14 @@
     loadingEl.textContent = "複数チャンネルの動画を一括取得中...";
     videosContainer.innerHTML = "";
 
+    // チャンネル選択ドロップダウン作成
+    playlists.forEach(pl => {
+      const option = document.createElement("option");
+      option.value = pl.name;
+      option.textContent = pl.name;
+      channelFilter.appendChild(option);
+    });
+
     for (const pl of playlists) {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
@@ -446,6 +483,7 @@
           const div = document.createElement("div");
           div.className = "video-item";
           div.dataset.id = videoId;
+          div.dataset.channel = pl.name;   // チャンネルフィルター用
           div.innerHTML = `
             <div class="thumbnail">
               <img src="${thumbnail}" loading="lazy" alt="${title}">
@@ -464,7 +502,9 @@
           };
           div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
           div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
+
           videosContainer.appendChild(div);
+          allVideoElements.push(div);
         });
       } catch (err) {
         console.error(pl.name + " 取得失敗", err);
@@ -476,13 +516,12 @@
     renderLater();
     updateSidebar();
 
-    searchInput.addEventListener("input", () => {
-      filterVideos(searchInput.value);
-      clearSearchBtn.style.display = searchInput.value ? "block" : "none";
-    });
+    // フィルターイベント
+    channelFilter.addEventListener("change", filterVideos);
+    searchInput.addEventListener("input", filterVideos);
     clearSearchBtn.addEventListener("click", () => {
       searchInput.value = "";
-      filterVideos("");
+      filterVideos();
       clearSearchBtn.style.display = "none";
       searchInput.focus();
     });
@@ -493,15 +532,55 @@
   clearHistoryBtn.addEventListener("click", clearHistory);
   clearLaterBtn.addEventListener("click", clearLaterList);
 
-  // リサイズ機能（元のコードそのまま）
   function initResize() {
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
     const playerArea = document.getElementById("player-area");
     let isResizingHorizontal = false, isResizingVertical = false;
-    // ... （省略せず残してあります。元のコードと同じ）
-    // 実際のコードではここに完全なinitResize関数を貼り付けてください
+    const startHorizontal = (e) => {
+      isResizingHorizontal = true;
+      resizeBar.classList.add("active");
+      playerHorizontalHandle.style.background = "rgba(255,0,0,0.3)";
+      document.body.style.cursor = "col-resize";
+      e.preventDefault();
+    };
+    resizeBar.addEventListener("mousedown", startHorizontal);
+    playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+    verticalResizeBar.addEventListener("mousedown", (e) => {
+      isResizingVertical = true;
+      verticalResizeBar.classList.add("active");
+      document.body.style.cursor = "row-resize";
+      e.preventDefault();
+    });
+    document.addEventListener("mousemove", (e) => {
+      if (isResizingHorizontal) {
+        const mainRect = document.getElementById("main").getBoundingClientRect();
+        let newWidth = ((e.clientX - mainRect.left) / mainRect.width) * 100;
+        newWidth = Math.max(25, Math.min(70, newWidth));
+        document.documentElement.style.setProperty("--player-width", newWidth + "%");
+      }
+      if (isResizingVertical) {
+        const playerRect = playerArea.getBoundingClientRect();
+        let newHeightPx = e.clientY - playerRect.top;
+        newHeightPx = Math.max(280, Math.min(window.innerHeight * 0.95, newHeightPx));
+        const newHeightVh = (newHeightPx / window.innerHeight) * 100;
+        document.documentElement.style.setProperty("--player-height", newHeightVh + "vh");
+      }
+    });
+    document.addEventListener("mouseup", () => {
+      if (isResizingHorizontal) {
+        isResizingHorizontal = false;
+        resizeBar.classList.remove("active");
+        playerHorizontalHandle.style.background = "transparent";
+        document.body.style.cursor = "default";
+      }
+      if (isResizingVertical) {
+        isResizingVertical = false;
+        verticalResizeBar.classList.remove("active");
+        document.body.style.cursor = "default";
+      }
+    });
   }
 
   initResize();
