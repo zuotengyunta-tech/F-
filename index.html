@@ -22,7 +22,6 @@
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
-    /* サイドバー（一切変更なし・削らず維持） */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -242,7 +241,7 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
+      <h2>おすすめチャンネル集（5ch追加・2分以内除外）</h2>
    
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
@@ -273,8 +272,10 @@
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
   ];
+
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
+
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -292,6 +293,7 @@
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
   const channelFilter = document.getElementById("channel-filter");
+
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
@@ -472,8 +474,9 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネルを並列取得中...（2分以内の動画を除外）";
+    loadingEl.textContent = "全チャンネルを並列取得中...（2分以内の動画を厳格除外）";
     videosContainer.innerHTML = "";
+
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -502,25 +505,17 @@
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
 
-        // === 2分以内（120秒）の動画を除外 ===
+        // ==================== 2分以内動画の厳格除外 ====================
         const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) {
           console.log(`⏭️ 2分以内除外: ${rawTitle} (${durationSec}秒)`);
           return;
         }
-
-        // === ショート除外（最低限のみ残しました） ===
-        const lowerTitle = rawTitle.toLowerCase();
-        if (lowerTitle.includes("short") ||
-            lowerTitle.includes("ショート") ||
-            lowerTitle.includes("ショーツ") ||
-            lowerTitle.includes("#short") ||
-            lowerTitle.includes("1分") ||
-            lowerTitle.includes("60秒") ||
-            lowerTitle.includes("ティック") ||
-            lowerTitle.includes("tiktok")) {
-          return;
+        if (durationSec === 0) {
+          console.log(`⚠️  duration不明のため除外: ${rawTitle}`);
+          return;   // durationが取れなかった動画も安全に除外
         }
+        // ============================================================
 
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
