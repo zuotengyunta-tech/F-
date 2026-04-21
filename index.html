@@ -148,7 +148,6 @@
       display: none;
     }
     #clearSearchBtn:hover { color: #ff0000; }
-    /* === 新規追加：チャンネル選択機能 === */
     #channel-filter {
       margin-bottom: 12px;
       padding: 10px 12px;
@@ -243,21 +242,19 @@
     </div>
     <div id="resize-bar"></div>
     <div id="thumbnail-area">
-      <h2>おすすめチャンネル集（画像の5ch追加・ID修正済）</h2>
+      <h2>おすすめチャンネル集（画像の5ch追加・ID修正・ショート非表示）</h2>
      
-      <!-- チャンネル変更機能 -->
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
      
-      <!-- 検索欄 -->
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全動画を読み込み中...（高速化版）</div>
+        <div id="loading">全動画を読み込み中...（ショート除外）</div>
       </div>
     </div>
   </div>
@@ -269,7 +266,7 @@
 <script>
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
  
-  // === チャンネル一覧（正しいUploadsプレイリストIDに修正済） ===
+  // === 正しいUploadsプレイリストID（全修正済） ===
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
@@ -282,7 +279,6 @@
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
 
-  // 以下、**元のコードを完全に維持**（一切削らず）
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
@@ -457,10 +453,9 @@
   }
 
   async function main() {
-    loadingEl.textContent = "複数チャンネルの動画を一括取得中...（ID修正済）";
+    loadingEl.textContent = "全チャンネル動画取得中...（ショート除外）";
     videosContainer.innerHTML = "";
 
-    // チャンネル選択ドロップダウン作成
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -471,11 +466,19 @@
     for (const pl of playlists) {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
-        console.log(`${pl.name}: ${items.length} videos loaded`);
+        console.log(`${pl.name}: ${items.length}件取得`);
+
         items.forEach(item => {
           const title = `[${pl.name}] ${item.snippet.title}`;
           const videoId = item.snippet.resourceId?.videoId;
           if (!videoId) return;
+
+          // === ショート動画を非表示 ===
+          const lowerTitle = title.toLowerCase();
+          if (lowerTitle.includes("short") || lowerTitle.includes("ショート") || lowerTitle.includes("#short")) {
+            return;
+          }
+
           const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
 
           const div = document.createElement("div");
