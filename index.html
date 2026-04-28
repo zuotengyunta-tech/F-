@@ -176,13 +176,13 @@
     }
     .play-btn:hover { background: #ff0000; }
 
-    /* タイトル改善：できるだけ表示 + ボタン被せ */
+    /* タイトル改善 */
     .video-title {
       padding: 12px 12px 12px 12px;
       font-size: 14px;
       line-height: 1.38;
       display: -webkit-box;
-      -webkit-line-clamp: 4;           /* 最大4行まで表示 */
+      -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
       position: relative;
@@ -204,7 +204,6 @@
       transition: all 0.25s ease;
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
-
     .later-btn { right: 12px; }
     .copy-btn { right: 72px; }
 
@@ -212,13 +211,12 @@
     .video-item:hover .later-btn {
       opacity: 1;
     }
-
     .copy-btn:hover { background: #4caf50; }
     .later-btn:hover { background: #ff9800; }
 
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
 
-    /* 履歴・後で見るの改善（もっさり対策） */
+    /* 履歴・後で見る */
     .history-item, .later-item {
       padding: 11px 12px;
       margin-bottom: 8px;
@@ -230,17 +228,14 @@
       transition: all 0.2s ease;
       word-break: break-all;
     }
-
     .history-item:hover, .later-item:hover {
       background: #f0f0f0;
       transform: translateX(4px);
     }
-
     .later-item {
       background: #fff8e1;
     }
 
-    /* 固定ボタン */
     .fixed-buttons {
       position: fixed;
       right: 75px;
@@ -317,7 +312,7 @@
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">全チャンネルを並列取得中...（高速モード）</div>
+        <div id="loading">どちゃくそ高速取得中... 全チャンネル並列 + 一括Duration取得</div>
       </div>
     </div>
   </div>
@@ -402,13 +397,12 @@
     renderLater();
   }
 
-  // 履歴・後で見る 表示（もっさり対策済み）
   function renderHistory() {
     const history = loadHistory();
     historyBox.innerHTML = history.length === 0 
       ? '<p style="color:#888; text-align:center; padding:30px 10px;">履歴はありません</p>' 
       : "";
-
+    const fragment = document.createDocumentFragment();
     history.forEach(item => {
       const div = document.createElement("div");
       div.className = "history-item";
@@ -417,11 +411,12 @@
         const target = document.querySelector(`[data-id="${item.id}"]`);
         if (target) {
           target.scrollIntoView({behavior:"smooth", block:"center"});
-          setTimeout(() => target.click(), 350);
+          setTimeout(() => target.click(), 300);
         }
       };
-      historyBox.appendChild(div);
+      fragment.appendChild(div);
     });
+    historyBox.appendChild(fragment);
   }
 
   function renderLater() {
@@ -429,7 +424,7 @@
     laterBox.innerHTML = laterList.length === 0 
       ? '<p style="color:#888; text-align:center; padding:30px 10px;">後で見るリストは空です</p>' 
       : "";
-
+    const fragment = document.createDocumentFragment();
     laterList.forEach(item => {
       const div = document.createElement("div");
       div.className = "later-item";
@@ -438,11 +433,12 @@
         const target = document.querySelector(`[data-id="${item.id}"]`);
         if (target) {
           target.scrollIntoView({behavior:"smooth", block:"center"});
-          setTimeout(() => target.click(), 350);
+          setTimeout(() => target.click(), 300);
         }
       };
-      laterBox.appendChild(div);
+      fragment.appendChild(div);
     });
+    laterBox.appendChild(fragment);
   }
 
   function clearHistory() {
@@ -474,9 +470,9 @@
       const original = btn.textContent;
       btn.textContent = "✓ コピー";
       btn.style.background = "#4caf50";
-      setTimeout(() => { 
-        btn.textContent = original; 
-        btn.style.background = "rgba(0,0,0,0.85)"; 
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.style.background = "rgba(0,0,0,0.85)";
       }, 1600);
     });
   }
@@ -496,13 +492,11 @@
     const keyword = searchInput.value.toLowerCase().trim();
     const selectedChannel = channelFilter.value;
     let visibleCount = 0;
-
     allVideoElements.forEach(item => {
       const titleText = item.querySelector('.video-title').textContent.toLowerCase();
       const channelName = item.dataset.channel || "";
       const matchSearch = keyword === "" || titleText.includes(keyword);
       const matchChannel = selectedChannel === "" || channelName === selectedChannel;
-
       if (matchSearch && matchChannel) {
         item.style.display = "";
         visibleCount++;
@@ -524,10 +518,20 @@
     }
   }
 
-  // ==================== YouTube API関連 ====================
+  // ==================== どちゃくそ最速化 ====================
+  function parseISO8601Duration(duration) {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    let seconds = 0;
+    if (match[1]) seconds += parseInt(match[1]) * 3600;
+    if (match[2]) seconds += parseInt(match[2]) * 60;
+    if (match[3]) seconds += parseInt(match[3]);
+    return seconds;
+  }
+
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
     const durations = {};
+    // 50件ずつバッチ（API上限に最適化）
     for (let i = 0; i < videoIds.length; i += 50) {
       const batch = videoIds.slice(i, i + 50);
       try {
@@ -538,18 +542,9 @@
             durations[item.id] = parseISO8601Duration(item.contentDetails.duration);
           });
         }
-      } catch (e) {}
+      } catch (e) { console.warn("Duration fetch error", e); }
     }
     return durations;
-  }
-
-  function parseISO8601Duration(duration) {
-    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-    let seconds = 0;
-    if (match[1]) seconds += parseInt(match[1]) * 3600;
-    if (match[2]) seconds += parseInt(match[2]) * 60;
-    if (match[3]) seconds += parseInt(match[3]);
-    return seconds;
   }
 
   async function fetchAllVideosFromPlaylist(playlistId) {
@@ -571,7 +566,7 @@
   }
 
   async function main() {
-    loadingEl.textContent = "全チャンネルを並列取得中...（高速モード）";
+    loadingEl.textContent = "🚀 どちゃくそ最速取得中...（全並列 + 一括Duration）";
     videosContainer.innerHTML = "";
 
     playlists.forEach(pl => {
@@ -581,23 +576,25 @@
       channelFilter.appendChild(option);
     });
 
-    const fetchPromises = playlists.map(async (pl) => {
-      try {
-        const items = await fetchAllVideosFromPlaylist(pl.id);
-        const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
-        const durations = await getVideoDurations(videoIds);
-        return { pl, items, durations };
-      } catch (err) {
-        console.error(`❌ ${pl.name} 取得失敗`, err);
-        return { pl, items: [], durations: {} };
-      }
-    });
+    // 1. 全プレイリストを完全並列で取得
+    const fetchPromises = playlists.map(pl => 
+      fetchAllVideosFromPlaylist(pl.id).then(items => ({
+        pl,
+        items,
+        videoIds: items.map(item => item.snippet.resourceId?.videoId).filter(Boolean)
+      }))
+    );
 
-    const results = await Promise.all(fetchPromises);
+    const playlistResults = await Promise.all(fetchPromises);
 
+    // 2. すべての動画IDを一括収集 → Durationを最小回数で取得
+    const allVideoIds = playlistResults.flatMap(r => r.videoIds);
+    const durations = await getVideoDurations(allVideoIds);
+
+    // 3. 結果をDocumentFragmentで一括追加
     const fragment = document.createDocumentFragment();
 
-    results.forEach(({ pl, items, durations }) => {
+    playlistResults.forEach(({ pl, items }) => {
       items.forEach(item => {
         const rawTitle = item.snippet.title;
         const videoId = item.snippet.resourceId?.videoId;
@@ -665,7 +662,7 @@
     });
   }
 
-  // ボタン動作
+  // ボタン動作（変更なし）
   jumpBtn.addEventListener("click", () => {
     if (currentActive) currentActive.scrollIntoView({ behavior: "smooth", block: "center" });
   });
