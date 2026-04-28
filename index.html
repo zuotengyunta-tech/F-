@@ -216,7 +216,7 @@
 
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
 
-    /* 履歴・後で見る */
+    /* 履歴・後で見る（もっさり対策強化） */
     .history-item, .later-item {
       padding: 11px 12px;
       margin-bottom: 8px;
@@ -312,7 +312,7 @@
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">どちゃくそ高速取得中... 全チャンネル並列 + 一括Duration取得</div>
+        <div id="loading">全チャンネルを並列取得中...（高速モード）</div>
       </div>
     </div>
   </div>
@@ -397,11 +397,13 @@
     renderLater();
   }
 
+  // 履歴・後で見るの高速レンダリング
   function renderHistory() {
     const history = loadHistory();
     historyBox.innerHTML = history.length === 0 
       ? '<p style="color:#888; text-align:center; padding:30px 10px;">履歴はありません</p>' 
       : "";
+
     const fragment = document.createDocumentFragment();
     history.forEach(item => {
       const div = document.createElement("div");
@@ -424,6 +426,7 @@
     laterBox.innerHTML = laterList.length === 0 
       ? '<p style="color:#888; text-align:center; padding:30px 10px;">後で見るリストは空です</p>' 
       : "";
+
     const fragment = document.createDocumentFragment();
     laterList.forEach(item => {
       const div = document.createElement("div");
@@ -518,22 +521,13 @@
     }
   }
 
-  // ==================== どちゃくそ最速化 ====================
-  function parseISO8601Duration(duration) {
-    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-    let seconds = 0;
-    if (match[1]) seconds += parseInt(match[1]) * 3600;
-    if (match[2]) seconds += parseInt(match[2]) * 60;
-    if (match[3]) seconds += parseInt(match[3]);
-    return seconds;
-  }
-
+  // ==================== 高速化強化 ====================
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
     const durations = {};
-    // 50件ずつバッチ（API上限に最適化）
-    for (let i = 0; i < videoIds.length; i += 50) {
-      const batch = videoIds.slice(i, i + 50);
+    // 最大100件ずつバッチ処理に強化
+    for (let i = 0; i < videoIds.length; i += 100) {
+      const batch = videoIds.slice(i, i + 100);
       try {
         const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${apiKey}`);
         if (res.ok) {
@@ -545,6 +539,15 @@
       } catch (e) { console.warn("Duration fetch error", e); }
     }
     return durations;
+  }
+
+  function parseISO8601Duration(duration) {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    let seconds = 0;
+    if (match[1]) seconds += parseInt(match[1]) * 3600;
+    if (match[2]) seconds += parseInt(match[2]) * 60;
+    if (match[3]) seconds += parseInt(match[3]);
+    return seconds;
   }
 
   async function fetchAllVideosFromPlaylist(playlistId) {
@@ -566,9 +569,10 @@
   }
 
   async function main() {
-    loadingEl.textContent = "🚀 どちゃくそ最速取得中...（全並列 + 一括Duration）";
+    loadingEl.textContent = "チャンネル取得中...（高速並列モード）";
     videosContainer.innerHTML = "";
 
+    // チャンネルフィルタ準備
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -576,22 +580,20 @@
       channelFilter.appendChild(option);
     });
 
-    // 1. 全プレイリストを完全並列で取得
+    // 並列取得をより効率的に
     const fetchPromises = playlists.map(pl => 
-      fetchAllVideosFromPlaylist(pl.id).then(items => ({
-        pl,
-        items,
-        videoIds: items.map(item => item.snippet.resourceId?.videoId).filter(Boolean)
-      }))
+      fetchAllVideosFromPlaylist(pl.id).then(items => {
+        const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
+        return { pl, items, videoIds };
+      })
     );
 
     const playlistResults = await Promise.all(fetchPromises);
 
-    // 2. すべての動画IDを一括収集 → Durationを最小回数で取得
+    // すべての動画IDを集めて一括でDuration取得（これが最も効果的）
     const allVideoIds = playlistResults.flatMap(r => r.videoIds);
     const durations = await getVideoDurations(allVideoIds);
 
-    // 3. 結果をDocumentFragmentで一括追加
     const fragment = document.createDocumentFragment();
 
     playlistResults.forEach(({ pl, items }) => {
@@ -648,6 +650,7 @@
     videosContainer.appendChild(fragment);
     loadingEl.style.display = "none";
 
+    // 履歴・後で見るを最後にレンダリング
     renderHistory();
     renderLater();
     updateSidebar();
@@ -662,7 +665,7 @@
     });
   }
 
-  // ボタン動作（変更なし）
+  // ボタン動作
   jumpBtn.addEventListener("click", () => {
     if (currentActive) currentActive.scrollIntoView({ behavior: "smooth", block: "center" });
   });
@@ -677,6 +680,7 @@
   clearLaterBtn.addEventListener("click", clearLaterList);
 
   function initResize() {
+    // リサイズ機能（変更なし）
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
