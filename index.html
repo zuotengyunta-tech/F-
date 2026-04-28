@@ -145,7 +145,7 @@
     #videos-wrapper {
       flex: 1;
       overflow-y: auto;
-      padding-right: 45px;   /* ボタン被りを防ぐために余白を増やしました */
+      padding-right: 80px;   /* 被り対策で大幅に余白確保 */
       position: relative;
       scroll-behavior: smooth;
     }
@@ -201,23 +201,15 @@
 
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
 
-    .no-results {
-      grid-column: 1 / -1;
-      text-align: center;
-      padding: 60px 20px;
-      color: #888;
-      font-size: 17px;
-    }
-
-    /* 固定ボタン - サイドバーに被らないよう大幅に右に移動 */
+    /* 固定ボタン - 被り対策を最優先で強化 */
     .fixed-buttons {
       position: fixed;
-      right: 48px;     /* ← 被りを防ぐためにここを増やしました */
-      bottom: 25px;
+      right: 75px;     /* かなり右に寄せて被りを防ぐ */
+      bottom: 28px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      z-index: 300;    /* サイドバーより上に */
+      z-index: 500;
     }
     .fixed-btn {
       padding: 13px 26px;
@@ -226,12 +218,12 @@
       color: #fff;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 6px 22px rgba(0,0,0,0.5);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.55);
       transition: all 0.2s;
     }
     .fixed-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.6);
     }
     #jumpBtn { background: #ff0000; }
     #topBtn { background: #333; }
@@ -288,7 +280,7 @@
       </div>
       <div id="videos-wrapper">
         <div id="videos"></div>
-        <div id="loading">動画を少しずつ取得・表示しています...（お待ちください）</div>
+        <div id="loading">全チャンネルを並列取得中...（高速モード）</div>
       </div>
     </div>
   </div>
@@ -465,7 +457,7 @@
     }
   }
 
-  // ==================== 軽量化・動画取得改善 ====================
+  // ==================== 高速化 ====================
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
     const durations = {};
@@ -512,7 +504,7 @@
   }
 
   async function main() {
-    loadingEl.textContent = "動画を少しずつ取得・表示しています...（チャンネル順に処理中）";
+    loadingEl.textContent = "全チャンネルを並列取得中...（高速モード）";
     videosContainer.innerHTML = "";
 
     playlists.forEach(pl => {
@@ -522,64 +514,73 @@
       channelFilter.appendChild(option);
     });
 
-    // 並列ではなく順次処理にして一気にDOMを増やさないようにする（軽量化）
-    for (const pl of playlists) {
+    const fetchPromises = playlists.map(async (pl) => {
       try {
         const items = await fetchAllVideosFromPlaylist(pl.id);
         const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
         const durations = await getVideoDurations(videoIds);
-
-        for (const item of items) {
-          const rawTitle = item.snippet.title;
-          const videoId = item.snippet.resourceId?.videoId;
-          if (!videoId) continue;
-
-          const durationSec = durations[videoId] || 0;
-          if (durationSec > 0 && durationSec <= 120) continue;
-
-          const lowerTitle = rawTitle.toLowerCase();
-          if (lowerTitle.includes("short") || lowerTitle.includes("ショート") ||
-              lowerTitle.includes("ショーツ") || lowerTitle.includes("#short") ||
-              lowerTitle.includes("1分") || lowerTitle.includes("60秒") ||
-              lowerTitle.includes("ティック") || lowerTitle.includes("tiktok")) {
-            continue;
-          }
-
-          const title = `[${pl.name}] ${rawTitle}`;
-          const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
-
-          const div = document.createElement("div");
-          div.className = "video-item";
-          div.dataset.id = videoId;
-          div.dataset.channel = pl.name;
-          div.innerHTML = `
-            <div class="thumbnail">
-              <img src="${thumbnail}" loading="lazy" alt="${title}">
-              <div class="play-btn">▶</div>
-            </div>
-            <div class="video-title">
-              ${title}
-              <button class="later-btn">後で見る</button>
-              <button class="copy-btn">🔗</button>
-            </div>
-          `;
-
-          div.onclick = (e) => {
-            if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
-              playVideo(videoId, title, div);
-            }
-          };
-          div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
-          div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
-
-          videosContainer.appendChild(div);
-          allVideoElements.push(div);
-        }
+        return { pl, items, durations };
       } catch (err) {
         console.error(`❌ ${pl.name} 取得失敗`, err);
+        return { pl, items: [], durations: {} };
       }
-    }
+    });
 
+    const results = await Promise.all(fetchPromises);
+
+    // DocumentFragmentで一括追加（これでかなり速くなる）
+    const fragment = document.createDocumentFragment();
+
+    results.forEach(({ pl, items, durations }) => {
+      items.forEach(item => {
+        const rawTitle = item.snippet.title;
+        const videoId = item.snippet.resourceId?.videoId;
+        if (!videoId) return;
+
+        const durationSec = durations[videoId] || 0;
+        if (durationSec > 0 && durationSec <= 120) return;
+
+        const lowerTitle = rawTitle.toLowerCase();
+        if (lowerTitle.includes("short") || lowerTitle.includes("ショート") ||
+            lowerTitle.includes("ショーツ") || lowerTitle.includes("#short") ||
+            lowerTitle.includes("1分") || lowerTitle.includes("60秒") ||
+            lowerTitle.includes("ティック") || lowerTitle.includes("tiktok")) {
+          return;
+        }
+
+        const title = `[${pl.name}] ${rawTitle}`;
+        const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
+
+        const div = document.createElement("div");
+        div.className = "video-item";
+        div.dataset.id = videoId;
+        div.dataset.channel = pl.name;
+        div.innerHTML = `
+          <div class="thumbnail">
+            <img src="${thumbnail}" loading="lazy" alt="${title}">
+            <div class="play-btn">▶</div>
+          </div>
+          <div class="video-title">
+            ${title}
+            <button class="later-btn">後で見る</button>
+            <button class="copy-btn">🔗</button>
+          </div>
+        `;
+
+        div.onclick = (e) => {
+          if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
+            playVideo(videoId, title, div);
+          }
+        };
+        div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
+        div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
+
+        fragment.appendChild(div);
+        allVideoElements.push(div);
+      });
+    });
+
+    videosContainer.appendChild(fragment);
     loadingEl.style.display = "none";
     renderHistory();
     renderLater();
