@@ -23,7 +23,7 @@
       gap: 15px;
     }
 
-    /* サイドバー */
+    /* ==================== サイドバー改善（ここがメイン修正） ==================== */
     #sidebar {
       width: 0;
       overflow: hidden;
@@ -31,12 +31,40 @@
       border-radius: 12px;
       box-shadow: 2px 0 10px rgba(0,0,0,0.1);
       transition: width 0.4s ease;
-      height: fit-content;
-      align-self: flex-start;
+      height: 100vh;                    /* 変更 */
+      align-self: stretch;              /* 変更 */
       padding: 15px;
       z-index: 100;
+      display: flex;
+      flex-direction: column;
     }
-    #sidebar.open { width: 360px; }
+    #sidebar.open { width: 380px; }
+
+    .sidebar-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;                    /* スクロールのために重要 */
+    }
+
+    #history, #later {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 8px;
+      margin-top: 8px;
+      scrollbar-width: thin;
+    }
+
+    #history::-webkit-scrollbar, #later::-webkit-scrollbar {
+      width: 6px;
+    }
+    #history::-webkit-scrollbar-thumb, #later::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+    #history::-webkit-scrollbar-thumb:hover, #later::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
 
     #toggle-container {
       position: fixed;
@@ -75,7 +103,6 @@
       max-width: 1400px;
       width: 100%;
     }
-
     #player-area {
       width: var(--player-width);
       height: var(--player-height);
@@ -105,7 +132,6 @@
       max-height: 100vh;
       position: relative;
     }
-
     h2 { margin: 0 0 8px 0; text-align: center; font-size: 25px; }
 
     #search-container { margin-bottom: 18px; position: relative; }
@@ -176,7 +202,6 @@
     }
     .play-btn:hover { background: #ff0000; }
 
-    /* タイトル改善 */
     .video-title {
       padding: 12px 12px 12px 12px;
       font-size: 14px;
@@ -206,17 +231,15 @@
     }
     .later-btn { right: 12px; }
     .copy-btn { right: 72px; }
-
     .video-item:hover .copy-btn,
     .video-item:hover .later-btn {
       opacity: 1;
     }
     .copy-btn:hover { background: #4caf50; }
     .later-btn:hover { background: #ff9800; }
-
     .active { outline: 4px solid #ff0000; outline-offset: -4px; }
 
-    /* 履歴・後で見る（もっさり対策強化） */
+    /* 履歴・後で見る */
     .history-item, .later-item {
       padding: 11px 12px;
       margin-bottom: 8px;
@@ -227,6 +250,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       word-break: break-all;
+      flex-shrink: 0;
     }
     .history-item:hover, .later-item:hover {
       background: #f0f0f0;
@@ -261,7 +285,6 @@
     }
     #jumpBtn { background: #ff0000; }
     #topBtn { background: #333; }
-
     #loading {
       text-align: center;
       padding: 40px 20px;
@@ -364,8 +387,8 @@
     sidebar.classList.toggle("open", shouldOpen);
     toggleHistoryBtn.textContent = isHistoryVisible ? "‹" : "›";
     toggleLaterBtn.textContent = isLaterVisible ? "‹" : "›";
-    historySection.style.display = isHistoryVisible ? "block" : "none";
-    laterSection.style.display = isLaterVisible ? "block" : "none";
+    historySection.style.display = isHistoryVisible ? "flex" : "none";   // block → flex
+    laterSection.style.display = isLaterVisible ? "flex" : "none";       // block → flex
   }
 
   function toggleHistory() { isHistoryVisible = !isHistoryVisible; updateSidebar(); }
@@ -397,12 +420,13 @@
     renderLater();
   }
 
-  // 履歴・後で見るの高速レンダリング
+  // ==================== 改善版 render関数 ====================
   function renderHistory() {
     const history = loadHistory();
-    historyBox.innerHTML = history.length === 0 
-      ? '<p style="color:#888; text-align:center; padding:30px 10px;">履歴はありません</p>' 
-      : "";
+    if (history.length === 0) {
+      historyBox.innerHTML = '<p style="color:#888; text-align:center; padding:40px 10px;">履歴はありません</p>';
+      return;
+    }
 
     const fragment = document.createDocumentFragment();
     history.forEach(item => {
@@ -413,19 +437,21 @@
         const target = document.querySelector(`[data-id="${item.id}"]`);
         if (target) {
           target.scrollIntoView({behavior:"smooth", block:"center"});
-          setTimeout(() => target.click(), 300);
+          setTimeout(() => target.click(), 250);
         }
       };
       fragment.appendChild(div);
     });
+    historyBox.innerHTML = "";
     historyBox.appendChild(fragment);
   }
 
   function renderLater() {
     const laterList = loadLater();
-    laterBox.innerHTML = laterList.length === 0 
-      ? '<p style="color:#888; text-align:center; padding:30px 10px;">後で見るリストは空です</p>' 
-      : "";
+    if (laterList.length === 0) {
+      laterBox.innerHTML = '<p style="color:#888; text-align:center; padding:40px 10px;">後で見るリストは空です</p>';
+      return;
+    }
 
     const fragment = document.createDocumentFragment();
     laterList.forEach(item => {
@@ -436,11 +462,12 @@
         const target = document.querySelector(`[data-id="${item.id}"]`);
         if (target) {
           target.scrollIntoView({behavior:"smooth", block:"center"});
-          setTimeout(() => target.click(), 300);
+          setTimeout(() => target.click(), 250);
         }
       };
       fragment.appendChild(div);
     });
+    laterBox.innerHTML = "";
     laterBox.appendChild(fragment);
   }
 
@@ -521,11 +548,10 @@
     }
   }
 
-  // ==================== 高速化強化 ====================
+  // ==================== 高速化強化（ここは元のまま維持） ====================
   async function getVideoDurations(videoIds) {
     if (videoIds.length === 0) return {};
     const durations = {};
-    // 最大100件ずつバッチ処理に強化
     for (let i = 0; i < videoIds.length; i += 100) {
       const batch = videoIds.slice(i, i + 100);
       try {
@@ -572,7 +598,6 @@
     loadingEl.textContent = "チャンネル取得中...（高速並列モード）";
     videosContainer.innerHTML = "";
 
-    // チャンネルフィルタ準備
     playlists.forEach(pl => {
       const option = document.createElement("option");
       option.value = pl.name;
@@ -580,8 +605,7 @@
       channelFilter.appendChild(option);
     });
 
-    // 並列取得をより効率的に
-    const fetchPromises = playlists.map(pl => 
+    const fetchPromises = playlists.map(pl =>
       fetchAllVideosFromPlaylist(pl.id).then(items => {
         const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
         return { pl, items, videoIds };
@@ -589,22 +613,17 @@
     );
 
     const playlistResults = await Promise.all(fetchPromises);
-
-    // すべての動画IDを集めて一括でDuration取得（これが最も効果的）
     const allVideoIds = playlistResults.flatMap(r => r.videoIds);
     const durations = await getVideoDurations(allVideoIds);
 
     const fragment = document.createDocumentFragment();
-
     playlistResults.forEach(({ pl, items }) => {
       items.forEach(item => {
         const rawTitle = item.snippet.title;
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
-
         const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) return;
-
         const lowerTitle = rawTitle.toLowerCase();
         if (lowerTitle.includes("short") || lowerTitle.includes("ショート") ||
             lowerTitle.includes("ショーツ") || lowerTitle.includes("#short") ||
@@ -612,7 +631,6 @@
             lowerTitle.includes("ティック") || lowerTitle.includes("tiktok")) {
           return;
         }
-
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
 
@@ -620,7 +638,6 @@
         div.className = "video-item";
         div.dataset.id = videoId;
         div.dataset.channel = pl.name;
-
         div.innerHTML = `
           <div class="thumbnail">
             <img src="${thumbnail}" loading="lazy" alt="${title}">
@@ -632,13 +649,11 @@
             <button class="copy-btn">🔗</button>
           </div>
         `;
-
         div.onclick = (e) => {
           if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
             playVideo(videoId, title, div);
           }
         };
-
         div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
         div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
 
@@ -650,7 +665,6 @@
     videosContainer.appendChild(fragment);
     loadingEl.style.display = "none";
 
-    // 履歴・後で見るを最後にレンダリング
     renderHistory();
     renderLater();
     updateSidebar();
@@ -665,22 +679,18 @@
     });
   }
 
-  // ボタン動作
   jumpBtn.addEventListener("click", () => {
     if (currentActive) currentActive.scrollIntoView({ behavior: "smooth", block: "center" });
   });
-
   topBtn.addEventListener("click", () => {
     document.getElementById("videos-wrapper").scrollTo({ top: 0, behavior: "smooth" });
   });
-
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
   clearHistoryBtn.addEventListener("click", clearHistory);
   clearLaterBtn.addEventListener("click", clearLaterList);
 
   function initResize() {
-    // リサイズ機能（変更なし）
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
@@ -697,7 +707,6 @@
 
     resizeBar.addEventListener("mousedown", startHorizontal);
     playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
-
     verticalResizeBar.addEventListener("mousedown", (e) => {
       isResizingVertical = true;
       verticalResizeBar.classList.add("active");
