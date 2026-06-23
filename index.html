@@ -258,6 +258,9 @@
       word-break: break-all;
       flex-shrink: 0;
       will-change: transform;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .history-item:hover, .later-item:hover {
       background: #f0f0f0;
@@ -265,6 +268,24 @@
     }
     .later-item {
       background: #fff8e1;
+    }
+
+    .later-item-content {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .later-close-btn {
+      color: #f44336;
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 8px;
+      flex-shrink: 0;
+      padding: 0 4px;
+      user-select: none;
     }
 
     .fixed-buttons {
@@ -389,9 +410,11 @@
   let isLaterVisible = false;
   let allVideoElements = [];
   
-  // ==================== 仮想スクロール対応 ====================
+  // ==================== 高速レンダリング最適化 ====================
   let historyRenderQueue = null;
   let laterRenderQueue = null;
+  const RENDER_BATCH_SIZE = 50; // 1フレームで描画する要素数
+  const RENDER_CHUNK_SIZE = 300; // 1チャンク当たりの要素数
 
   function updateSidebar() {
     const shouldOpen = isHistoryVisible || isLaterVisible;
@@ -440,26 +463,33 @@
     if (isLaterVisible) scheduleLaterRender();
   }
 
-  // ==================== 高速レンダリング（requestAnimationFrame活用） ====================
+  // ==================== 超高速レンダリング（チャンク分割＋requestAnimationFrame） ====================
   function scheduleHistoryRender() {
     if (historyRenderQueue) cancelAnimationFrame(historyRenderQueue);
-    historyRenderQueue = requestAnimationFrame(renderHistory);
+    historyRenderQueue = requestAnimationFrame(() => renderHistoryChunked(0));
   }
 
   function scheduleLaterRender() {
     if (laterRenderQueue) cancelAnimationFrame(laterRenderQueue);
-    laterRenderQueue = requestAnimationFrame(renderLater);
+    laterRenderQueue = requestAnimationFrame(() => renderLaterChunked(0));
   }
 
-  function renderHistory() {
+  function renderHistoryChunked(startIdx = 0) {
     const history = loadHistory();
-    if (history.length === 0) {
-      historyBox.innerHTML = '<p style="color:#888; text-align:center; padding:40px 10px;">履歴はありません</p>';
-      return;
+    
+    if (startIdx === 0) {
+      historyBox.innerHTML = "";
+      if (history.length === 0) {
+        historyBox.innerHTML = '<p style="color:#888; text-align:center; padding:40px 10px;">履歴はありません</p>';
+        return;
+      }
     }
 
+    const endIdx = Math.min(startIdx + RENDER_BATCH_SIZE, history.length);
     const fragment = document.createDocumentFragment();
-    history.forEach(item => {
+
+    for (let i = startIdx; i < endIdx; i++) {
+      const item = history[i];
       const div = document.createElement("div");
       div.className = "history-item";
       div.textContent = item.title;
@@ -471,33 +501,50 @@
         }
       };
       fragment.appendChild(div);
-    });
-    historyBox.innerHTML = "";
-    historyBox.appendChild(fragment);
-  }
-
-  function renderLater() {
-    const laterList = loadLater();
-    if (laterList.length === 0) {
-      laterBox.innerHTML = '<p style="color:#888; text-align:center; padding:40px 10px;">後で見るリストは空です</p>';
-      return;
     }
 
+    historyBox.appendChild(fragment);
+
+    if (endIdx < history.length) {
+      requestAnimationFrame(() => renderHistoryChunked(endIdx));
+    }
+  }
+
+  function renderLaterChunked(startIdx = 0) {
+    const laterList = loadLater();
+    
+    if (startIdx === 0) {
+      laterBox.innerHTML = "";
+      if (laterList.length === 0) {
+        laterBox.innerHTML = '<p style="color:#888; text-align:center; padding:40px 10px;">後で見るリストは空です</p>';
+        return;
+      }
+    }
+
+    const endIdx = Math.min(startIdx + RENDER_BATCH_SIZE, laterList.length);
     const fragment = document.createDocumentFragment();
-    laterList.forEach(item => {
+
+    for (let i = startIdx; i < endIdx; i++) {
+      const item = laterList[i];
       const div = document.createElement("div");
       div.className = "later-item";
       
-      // textContent + 動的な onclick の組み合わせ
-      div.textContent = item.title;
+      const contentSpan = document.createElement("span");
+      contentSpan.className = "later-item-content";
+      contentSpan.textContent = item.title;
+      
       const closeBtn = document.createElement("span");
-      closeBtn.style.cssText = "float:right; color:#f44336; cursor:pointer; font-size:13px;";
+      closeBtn.className = "later-close-btn";
       closeBtn.textContent = "×";
+      closeBtn.title = "削除";
+      
+      div.appendChild(contentSpan);
+      div.appendChild(closeBtn);
+      
       closeBtn.onclick = (e) => {
         e.stopImmediatePropagation();
         removeLater(item.id);
       };
-      div.appendChild(closeBtn);
       
       div.onclick = () => {
         const target = document.querySelector(`[data-id="${item.id}"]`);
@@ -506,10 +553,15 @@
           setTimeout(() => target.click(), 250);
         }
       };
+      
       fragment.appendChild(div);
-    });
-    laterBox.innerHTML = "";
+    }
+
     laterBox.appendChild(fragment);
+
+    if (endIdx < laterList.length) {
+      requestAnimationFrame(() => renderLaterChunked(endIdx));
+    }
   }
 
   function clearHistory() {
@@ -636,9 +688,56 @@
     return items;
   }
 
+  // ==================== 動画グリッド描画もチャンク化 ====================
+  function renderVideosChunked(videos, startIdx = 0) {
+    const endIdx = Math.min(startIdx + RENDER_CHUNK_SIZE, videos.length);
+    const fragment = document.createDocumentFragment();
+
+    for (let i = startIdx; i < endIdx; i++) {
+      const videoData = videos[i];
+      const { videoId, title, thumbnail, pl } = videoData;
+
+      const div = document.createElement("div");
+      div.className = "video-item";
+      div.dataset.id = videoId;
+      div.dataset.channel = pl.name;
+      div.innerHTML = `
+        <div class="thumbnail">
+          <img src="${thumbnail}" loading="lazy" alt="${title}">
+          <div class="play-btn">▶</div>
+        </div>
+        <div class="video-title">
+          ${title}
+          <button class="later-btn">後で見る</button>
+          <button class="copy-btn">🔗</button>
+        </div>
+      `;
+      
+      div.onclick = (e) => {
+        if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
+          playVideo(videoId, title, div);
+        }
+      };
+      div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
+      div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
+
+      fragment.appendChild(div);
+      allVideoElements.push(div);
+    }
+
+    videosContainer.appendChild(fragment);
+
+    if (endIdx < videos.length) {
+      requestAnimationFrame(() => renderVideosChunked(videos, endIdx));
+    } else {
+      loadingEl.style.display = "none";
+    }
+  }
+
   async function main() {
     loadingEl.textContent = "チャンネル取得中...（高速並列モード）";
     videosContainer.innerHTML = "";
+    allVideoElements = [];
 
     playlists.forEach(pl => {
       const option = document.createElement("option");
@@ -658,14 +757,17 @@
     const allVideoIds = playlistResults.flatMap(r => r.videoIds);
     const durations = await getVideoDurations(allVideoIds);
 
-    const fragment = document.createDocumentFragment();
+    // メモリ効率化：データのみ収集し、レンダリングは別フェーズ
+    const videosData = [];
     playlistResults.forEach(({ pl, items }) => {
       items.forEach(item => {
         const rawTitle = item.snippet.title;
         const videoId = item.snippet.resourceId?.videoId;
         if (!videoId) return;
+        
         const durationSec = durations[videoId] || 0;
         if (durationSec > 0 && durationSec <= 120) return;
+        
         const lowerTitle = rawTitle.toLowerCase();
         if (lowerTitle.includes("short") || lowerTitle.includes("ショート") ||
             lowerTitle.includes("ショーツ") || lowerTitle.includes("#short") ||
@@ -673,39 +775,20 @@
             lowerTitle.includes("ティック") || lowerTitle.includes("tiktok")) {
           return;
         }
+
         const title = `[${pl.name}] ${rawTitle}`;
         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "";
 
-        const div = document.createElement("div");
-        div.className = "video-item";
-        div.dataset.id = videoId;
-        div.dataset.channel = pl.name;
-        div.innerHTML = `
-          <div class="thumbnail">
-            <img src="${thumbnail}" loading="lazy" alt="${title}">
-            <div class="play-btn">▶</div>
-          </div>
-          <div class="video-title">
-            ${title}
-            <button class="later-btn">後で見る</button>
-            <button class="copy-btn">🔗</button>
-          </div>
-        `;
-        div.onclick = (e) => {
-          if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
-            playVideo(videoId, title, div);
-          }
-        };
-        div.querySelector('.copy-btn').onclick = (e) => { e.stopPropagation(); copyLink(videoId); };
-        div.querySelector('.later-btn').onclick = (e) => { e.stopPropagation(); addToLater(videoId, title); };
-
-        fragment.appendChild(div);
-        allVideoElements.push(div);
+        videosData.push({ videoId, title, thumbnail, pl });
       });
     });
 
-    videosContainer.appendChild(fragment);
-    loadingEl.style.display = "none";
+    // チャンク分割でDOM描画
+    if (videosData.length > 0) {
+      renderVideosChunked(videosData, 0);
+    } else {
+      loadingEl.textContent = "動画が見つかりません";
+    }
 
     renderHistory();
     renderLater();
