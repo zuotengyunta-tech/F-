@@ -22,7 +22,6 @@
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
-
     /* ==================== サイドバー ==================== */
     #sidebar {
       width: 0;
@@ -40,14 +39,12 @@
       contain: layout style paint;
     }
     #sidebar.open { width: 380px; }
-
     .sidebar-section {
       flex: 1;
       display: flex;
       flex-direction: column;
       min-height: 0;
     }
-
     #history, #later {
       flex: 1;
       overflow-y: auto;
@@ -57,18 +54,6 @@
       scrollbar-width: thin;
       contain: strict;
     }
-
-    #history::-webkit-scrollbar, #later::-webkit-scrollbar {
-      width: 6px;
-    }
-    #history::-webkit-scrollbar-thumb, #later::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 3px;
-    }
-    #history::-webkit-scrollbar-thumb:hover, #later::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-
     #toggle-container {
       position: fixed;
       left: -2px;
@@ -98,7 +83,6 @@
       transform: scale(1.18) translateX(2px);
       box-shadow: 0 10px 22px rgba(0, 0, 0, 0.7);
     }
-
     #main {
       flex: 1;
       display: flex;
@@ -121,40 +105,38 @@
     }
     #player { width: 100%; height: 100%; }
     iframe { width: 100%; height: 100%; border: none; display: block; }
-
-    #player-horizontal-handle { 
-      position: absolute; 
-      top: 0; 
-      right: -4px; 
-      width: 9px; 
-      height: 100%; 
-      background: transparent; 
-      cursor: col-resize; 
-      z-index: 220; 
+    #player-horizontal-handle {
+      position: absolute;
+      top: 0;
+      right: -4px;
+      width: 9px;
+      height: 100%;
+      background: transparent;
+      cursor: col-resize;
+      z-index: 220;
     }
-    #vertical-resize-bar { 
-      position: absolute; 
-      bottom: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 8px; 
-      background: #ddd; 
-      cursor: row-resize; 
-      z-index: 230; 
-      transition: background 0.2s; 
+    #vertical-resize-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: #ddd;
+      cursor: row-resize;
+      z-index: 230;
+      transition: background 0.2s;
     }
     #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
-    #resize-bar { 
-      width: 6px; 
-      background: #ddd; 
-      cursor: col-resize; 
-      border-radius: 3px; 
-      margin: 0 -3px; 
-      z-index: 100; 
-      transition: background 0.2s; 
+    #resize-bar {
+      width: 6px;
+      background: #ddd;
+      cursor: col-resize;
+      border-radius: 3px;
+      margin: 0 -3px;
+      z-index: 100;
+      transition: background 0.2s;
     }
     #resize-bar:hover, #resize-bar.active { background: #ff0000; }
-
     #thumbnail-area {
       flex: 1;
       display: flex;
@@ -163,15 +145,14 @@
       position: relative;
       contain: layout style paint;
     }
-    h2 { 
-      margin: 0 0 8px 0; 
-      text-align: center; 
-      font-size: 25px; 
+    h2 {
+      margin: 0 0 8px 0;
+      text-align: center;
+      font-size: 25px;
     }
-
-    #search-container { 
-      margin-bottom: 18px; 
-      position: relative; 
+    #search-container {
+      margin-bottom: 18px;
+      position: relative;
     }
     #searchInput {
       width: 100%;
@@ -195,7 +176,6 @@
       display: none;
     }
     #clearSearchBtn:hover { color: #ff0000; }
-
     #channel-filter {
       margin-bottom: 12px;
       padding: 10px 12px;
@@ -206,7 +186,6 @@
       background: white;
     }
     #channel-filter:focus { border-color: #ff0000; outline: none; }
-
     #videos-wrapper {
       flex: 1;
       overflow-y: auto;
@@ -220,7 +199,6 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
-
     .video-item {
       background: white;
       border-radius: 12px;
@@ -231,33 +209,30 @@
       contain: layout style paint;
     }
     .video-item:hover { transform: translateY(-4px); }
-
-    .thumbnail { 
-      position: relative; 
-      cursor: pointer; 
+    .thumbnail {
+      position: relative;
+      cursor: pointer;
     }
-    .thumbnail img { 
-      width: 100%; 
-      aspect-ratio: 16 / 9; 
-      object-fit: cover; 
+    .thumbnail img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
     }
-
     .play-btn {
-      position: absolute; 
-      top: 50%; 
-      left: 50%; 
+      position: absolute;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
-      width: 60px; 
-      height: 60px; 
-      background: rgba(0,0,0,0.78); 
+      width: 60px;
+      height: 60px;
+      background: rgba(0,0,0,0.78);
       color: white;
-      border-radius: 50%; 
-      display: grid; 
-      place-items: center; 
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
       font-size: 32px;
     }
     .play-btn:hover { background: #ff0000; }
-
     .video-title {
       padding: 12px;
       font-size: 14px;
@@ -269,7 +244,6 @@
       position: relative;
       min-height: 78px;
     }
-
     .copy-btn, .later-btn {
       position: absolute;
       top: 10px;
@@ -293,11 +267,10 @@
     }
     .copy-btn:hover { background: #4caf50; }
     .later-btn:hover { background: #ff9800; }
-    .active { 
-      outline: 4px solid #ff0000; 
-      outline-offset: -4px; 
+    .active {
+      outline: 4px solid #ff0000;
+      outline-offset: -4px;
     }
-
     /* 履歴・後で見る */
     .history-item, .later-item {
       padding: 11px 12px;
@@ -321,7 +294,6 @@
     .later-item {
       background: #fff8e1;
     }
-
     .later-item-content {
       flex: 1;
       min-width: 0;
@@ -329,7 +301,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
     .later-close-btn {
       color: #f44336;
       cursor: pointer;
@@ -339,7 +310,6 @@
       padding: 0 4px;
       user-select: none;
     }
-
     .fixed-buttons {
       position: fixed;
       right: 75px;
@@ -379,7 +349,6 @@
     <button id="toggleHistoryBtn">›</button>
     <button id="toggleLaterBtn">›</button>
   </div>
-
   <!-- サイドバー -->
   <div id="sidebar">
     <div class="sidebar-section" id="historySection">
@@ -398,7 +367,6 @@
       <div id="later"></div>
     </div>
   </div>
-
   <div id="main">
     <!-- プレイヤー -->
     <div id="player-area">
@@ -407,7 +375,6 @@
       <div id="vertical-resize-bar"></div>
     </div>
     <div id="resize-bar"></div>
-
     <!-- サムネイルエリア -->
     <div id="thumbnail-area">
       <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
@@ -424,7 +391,6 @@
       </div>
     </div>
   </div>
-
   <!-- 固定ボタン -->
   <div class="fixed-buttons">
     <button id="jumpBtn" class="fixed-btn">▶ 再生中へ戻る</button>
@@ -434,7 +400,6 @@
 <script>
   // ==================== 設定 ====================
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
-  
   const playlists = [
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
@@ -447,14 +412,10 @@
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
 
-  // ==================== DOM要素 ====================
+  // ==================== DOM ====================
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
-  const historySection = document.getElementById("historySection");
-  const laterSection = document.getElementById("laterSection");
-  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-  const clearLaterBtn = document.getElementById("clearLaterBtn");
   const historyBox = document.getElementById("history");
   const laterBox = document.getElementById("later");
   const player = document.getElementById("player");
@@ -470,36 +431,21 @@
   let isHistoryVisible = false;
   let isLaterVisible = false;
   let allVideoElements = [];
+  let videoMap = new Map(); // videoId → element
 
-  // メモリ最適化
   let cachedHistory = [];
   let cachedLater = [];
-  let historyMap = new Map();
-  let laterMap = new Map();
-  let historyEventHandlerAttached = false;
-  let laterEventHandlerAttached = false;
 
   // ==================== ストレージ ====================
   function loadHistoryFromStorage() {
     try {
       cachedHistory = JSON.parse(localStorage.getItem(historyKey) || "[]");
-      historyMap.clear();
-      cachedHistory.forEach(item => historyMap.set(item.id, item));
-    } catch {
-      cachedHistory = [];
-      historyMap.clear();
-    }
+    } catch { cachedHistory = []; }
   }
-
   function loadLaterFromStorage() {
     try {
       cachedLater = JSON.parse(localStorage.getItem(laterKey) || "[]");
-      laterMap.clear();
-      cachedLater.forEach(item => laterMap.set(item.id, item));
-    } catch {
-      cachedLater = [];
-      laterMap.clear();
-    }
+    } catch { cachedLater = []; }
   }
 
   function updateSidebar() {
@@ -507,60 +453,51 @@
     sidebar.classList.toggle("open", shouldOpen);
     toggleHistoryBtn.textContent = isHistoryVisible ? "‹" : "›";
     toggleLaterBtn.textContent = isLaterVisible ? "‹" : "›";
-    historySection.style.display = isHistoryVisible ? "flex" : "none";
-    laterSection.style.display = isLaterVisible ? "flex" : "none";
+    document.getElementById("historySection").style.display = isHistoryVisible ? "flex" : "none";
+    document.getElementById("laterSection").style.display = isLaterVisible ? "flex" : "none";
   }
 
   // ==================== 履歴・後で見る ====================
-  function toggleHistory() { 
-    isHistoryVisible = !isHistoryVisible; 
+  function toggleHistory() {
+    isHistoryVisible = !isHistoryVisible;
     updateSidebar();
-    if (isHistoryVisible) renderHistoryImmediate();
+    if (isHistoryVisible) renderHistory();
   }
-  
-  function toggleLater() { 
-    isLaterVisible = !isLaterVisible; 
+  function toggleLater() {
+    isLaterVisible = !isLaterVisible;
     updateSidebar();
-    if (isLaterVisible) renderLaterImmediate();
+    if (isLaterVisible) renderLater();
   }
 
   function saveHistory(video) {
     cachedHistory = cachedHistory.filter(item => item.id !== video.id);
     cachedHistory.unshift(video);
     cachedHistory = cachedHistory.slice(0, 30);
-    historyMap.set(video.id, video);
     localStorage.setItem(historyKey, JSON.stringify(cachedHistory));
-    if (isHistoryVisible) renderHistoryImmediate();
+    if (isHistoryVisible) renderHistory();
   }
 
   function saveLater(video) {
-    if (laterMap.has(video.id)) return;
+    if (cachedLater.some(item => item.id === video.id)) return;
     cachedLater.unshift(video);
-    laterMap.set(video.id, video);
     localStorage.setItem(laterKey, JSON.stringify(cachedLater));
-    if (isLaterVisible) renderLaterImmediate();
+    if (isLaterVisible) renderLater();
   }
 
   function removeLater(videoId) {
     cachedLater = cachedLater.filter(item => item.id !== videoId);
-    laterMap.delete(videoId);
     localStorage.setItem(laterKey, JSON.stringify(cachedLater));
-    renderLaterImmediate();
+    renderLater();
   }
 
-  function renderHistoryImmediate() {
-    historyBox.innerHTML = cachedHistory.length === 0 
+  function renderHistory() {
+    historyBox.innerHTML = cachedHistory.length === 0
       ? '<p style="color:#888; text-align:center; padding:40px 10px;">履歴はありません</p>'
       : cachedHistory.map(item => `<div class="history-item" data-id="${item.id}">${item.title}</div>`).join('');
-
-    if (!historyEventHandlerAttached) {
-      historyBox.addEventListener('click', handleHistoryClick);
-      historyEventHandlerAttached = true;
-    }
   }
 
-  function renderLaterImmediate() {
-    laterBox.innerHTML = cachedLater.length === 0 
+  function renderLater() {
+    laterBox.innerHTML = cachedLater.length === 0
       ? '<p style="color:#888; text-align:center; padding:40px 10px;">後で見るリストは空です</p>'
       : cachedLater.map(item => `
         <div class="later-item" data-id="${item.id}">
@@ -568,22 +505,37 @@
           <span class="later-close-btn">×</span>
         </div>
       `).join('');
+  }
 
-    if (!laterEventHandlerAttached) {
-      laterBox.addEventListener('click', handleLaterClick);
-      laterEventHandlerAttached = true;
+  // 動画を確実に探して再生する関数
+  async function playVideoById(videoId) {
+    let element = videoMap.get(videoId);
+    
+    // まだレンダリングされていない場合は少し待つ
+    if (!element) {
+      for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 100));
+        element = videoMap.get(videoId);
+        if (element) break;
+      }
+    }
+
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => {
+        const titleEl = element.querySelector('.video-title');
+        const title = titleEl ? titleEl.textContent.trim() : '';
+        playVideo(videoId, title, element);
+      }, 300);
+    } else {
+      alert("動画が見つかりませんでした。ページを再読み込みしてください。");
     }
   }
 
   function handleHistoryClick(e) {
     const item = e.target.closest('.history-item');
     if (!item) return;
-    const videoId = item.dataset.id;
-    const target = document.querySelector(`[data-id="${videoId}"]`);
-    if (target) {
-      target.scrollIntoView({behavior:"smooth", block:"center"});
-      setTimeout(() => target.click(), 250);
-    }
+    playVideoById(item.dataset.id);
   }
 
   function handleLaterClick(e) {
@@ -595,12 +547,7 @@
       e.stopImmediatePropagation();
       removeLater(itemEl.dataset.id);
     } else {
-      const videoId = itemEl.dataset.id;
-      const target = document.querySelector(`[data-id="${videoId}"]`);
-      if (target) {
-        target.scrollIntoView({behavior:"smooth", block:"center"});
-        setTimeout(() => target.click(), 250);
-      }
+      playVideoById(itemEl.dataset.id);
     }
   }
 
@@ -608,8 +555,7 @@
     if (confirm("再生履歴をすべて削除しますか？")) {
       localStorage.removeItem(historyKey);
       cachedHistory = [];
-      historyMap.clear();
-      renderHistoryImmediate();
+      renderHistory();
     }
   }
 
@@ -617,14 +563,14 @@
     if (confirm("後で見るリストをすべて削除しますか？")) {
       localStorage.removeItem(laterKey);
       cachedLater = [];
-      laterMap.clear();
-      renderLaterImmediate();
+      renderLater();
     }
   }
 
   // ==================== プレイヤー ====================
   function playVideo(videoId, title, videoItemElement) {
     player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    
     if (currentActive) currentActive.classList.remove("active");
     videoItemElement.classList.add("active");
     currentActive = videoItemElement;
@@ -664,29 +610,14 @@
     allVideoElements.forEach(item => {
       const titleText = item.querySelector('.video-title').textContent.toLowerCase();
       const channelName = item.dataset.channel || "";
-      const match = (keyword === "" || titleText.includes(keyword)) &&
-                    (selectedChannel === "" || channelName === selectedChannel);
-
+      const match = (!keyword || titleText.includes(keyword)) &&
+                    (!selectedChannel || channelName === selectedChannel);
       item.style.display = match ? "" : "none";
       if (match) visibleCount++;
     });
-
-    // 結果なしメッセージ
-    let noResults = videosContainer.querySelector('.no-results');
-    if (visibleCount === 0 && (keyword || selectedChannel)) {
-      if (!noResults) {
-        noResults = document.createElement("div");
-        noResults.className = "no-results";
-        noResults.textContent = "条件に一致する動画はありません。";
-        noResults.style.cssText = "text-align:center; padding:40px 20px; color:#666;";
-        videosContainer.appendChild(noResults);
-      }
-    } else if (noResults) {
-      noResults.remove();
-    }
   }
 
-  // ==================== YouTube API ====================
+  // ==================== YouTube API（省略せず完全版） ====================
   async function getVideoDurations(videoIds) {
     if (!videoIds.length) return {};
     const durations = {};
@@ -735,7 +666,7 @@
   function renderVideosChunked(videos, startIdx = 0) {
     const BATCH = 120;
     const endIdx = Math.min(startIdx + BATCH, videos.length);
-    
+   
     let html = '';
     for (let i = startIdx; i < endIdx; i++) {
       const { videoId, title, thumbnail, pl } = videos[i];
@@ -760,6 +691,7 @@
     newElements.forEach(el => {
       videosContainer.appendChild(el);
       allVideoElements.push(el);
+      videoMap.set(el.dataset.id, el);
     });
 
     newElements.forEach(el => {
@@ -772,8 +704,14 @@
         }
       });
 
-      el.querySelector('.copy-btn').addEventListener('click', (e) => { e.stopPropagation(); copyLink(videoId); });
-      el.querySelector('.later-btn').addEventListener('click', (e) => { e.stopPropagation(); addToLater(videoId, titleText); });
+      el.querySelector('.copy-btn').addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        copyLink(videoId); 
+      });
+      el.querySelector('.later-btn').addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        addToLater(videoId, titleText); 
+      });
     });
 
     if (endIdx < videos.length) {
@@ -797,8 +735,8 @@
 
     const playlistResults = await Promise.all(
       playlists.map(pl => fetchAllVideosFromPlaylist(pl.id).then(items => ({
-        pl, 
-        items, 
+        pl,
+        items,
         videoIds: items.map(item => item.snippet.resourceId?.videoId).filter(Boolean)
       })))
     );
@@ -834,11 +772,11 @@
       loadingEl.textContent = "動画が見つかりません";
     }
 
-    renderHistoryImmediate();
-    renderLaterImmediate();
+    renderHistory();
+    renderLater();
     updateSidebar();
 
-    // 検索・フィルターイベント
+    // イベント
     channelFilter.addEventListener("change", filterVideos);
     searchInput.addEventListener("input", () => {
       filterVideos();
@@ -848,22 +786,23 @@
       searchInput.value = "";
       filterVideos();
       clearSearchBtn.style.display = "none";
-      searchInput.focus();
     });
+
+    // サイドバークリック
+    historyBox.addEventListener('click', handleHistoryClick);
+    laterBox.addEventListener('click', handleLaterClick);
   }
 
   // 固定ボタン
   jumpBtn.addEventListener("click", () => currentActive && currentActive.scrollIntoView({ behavior: "smooth", block: "center" }));
   topBtn.addEventListener("click", () => document.getElementById("videos-wrapper").scrollTo({ top: 0, behavior: "smooth" }));
-
   toggleHistoryBtn.addEventListener("click", toggleHistory);
   toggleLaterBtn.addEventListener("click", toggleLater);
-  clearHistoryBtn.addEventListener("click", clearHistory);
-  clearLaterBtn.addEventListener("click", clearLaterList);
+  document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
+  document.getElementById("clearLaterBtn").addEventListener("click", clearLaterList);
 
-  // ==================== リサイズ機能 ====================
+  // リサイズ機能（省略せず完全）
   function initResize() {
-    // ...（変更なし、以前と同じ高品質なリサイズ処理）
     const resizeBar = document.getElementById("resize-bar");
     const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
     const verticalResizeBar = document.getElementById("vertical-resize-bar");
@@ -880,6 +819,7 @@
 
     resizeBar.addEventListener("mousedown", startHorizontal);
     playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+
     verticalResizeBar.addEventListener("mousedown", (e) => {
       isResizingVertical = true;
       verticalResizeBar.classList.add("active");
