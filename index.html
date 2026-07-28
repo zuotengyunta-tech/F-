@@ -335,12 +335,14 @@
     }
     #jumpBtn { background: #ff0000; }
     #topBtn { background: #333; }
-    #loading {
+    #loading, #loadMoreSentinel {
       text-align: center;
       padding: 40px 20px;
       color: #666;
       font-size: 16px;
+      grid-column: 1 / -1;
     }
+    #loadMoreSentinel { padding: 20px; font-size: 13px; color: #aaa; }
   </style>
 </head>
 <body>
@@ -406,8 +408,18 @@
     { name: "rの住人ピエロ【哲学】", id: "UUY92Ma2-tzt8LLqodw9UF0g" },
     { name: "RECODE - 知性OSの再定義", id: "UUxeOH32jDFcRBV1D2lh7eFQ" },
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
-    { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" }
+    { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" },
+    { name: "ディッカー・マックス", id: "UUerAfp_7xAMwFZpN6izmEiQ" },
+    { name: "生産技術の馬", id: "UU0KlnhY6jRI2_kXBFlaFP0w" },
+    { name: "パイモン大好きおじさん", id: "UUo47CdDdWB1sCtShp3KTZMQ" },
+    { name: "気ままに宗教史", id: "UUDWGVmCE8WWWjM53QTe5vGA" }
   ];
+
+  // チャンネル数が増えても重くなりにくいように、各チャンネルの取得件数に上限を設ける
+  const MAX_VIDEOS_PER_CHANNEL = 60;
+  // 初回に描画する件数 / スクロールで追加描画する件数（全件を一気にDOMへ入れない）
+  const INITIAL_RENDER_COUNT = 45;
+  const LOAD_MORE_COUNT = 30;
 
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
@@ -420,6 +432,7 @@
   const laterBox = document.getElementById("later");
   const player = document.getElementById("player");
   const videosContainer = document.getElementById("videos");
+  const videosWrapper = document.getElementById("videos-wrapper");
   const loadingEl = document.getElementById("loading");
   const jumpBtn = document.getElementById("jumpBtn");
   const topBtn = document.getElementById("topBtn");
@@ -430,11 +443,18 @@
   let currentActive = null;
   let isHistoryVisible = false;
   let isLaterVisible = false;
-  let allVideoElements = [];
-  let videoMap = new Map(); // videoId → element
+
+  let videosData = [];          // 全動画のメタデータ（軽量、DOM化しない）
+  let currentFilteredData = []; // 現在の検索/フィルタ条件に合う動画
+  let renderedCount = 0;        // currentFilteredData のうち実際にDOM描画済みの件数
+  let videoMap = new Map();     // videoId → element（描画済みのものだけ）
 
   let cachedHistory = [];
   let cachedLater = [];
+
+  let sentinelObserver = null;
+  const sentinelEl = document.createElement("div");
+  sentinelEl.id = "loadMoreSentinel";
 
   // ==================== ストレージ ====================
   function loadHistoryFromStorage() {
@@ -507,17 +527,27 @@
       `).join('');
   }
 
-  // 動画を確実に探して再生する関数
+  // 動画を確実に探して再生する関数（未描画でも段階的に描画して探す）
   async function playVideoById(videoId) {
     let element = videoMap.get(videoId);
-    
-    // まだレンダリングされていない場合は少し待つ
+
     if (!element) {
-      for (let i = 0; i < 30; i++) {
-        await new Promise(r => setTimeout(r, 100));
-        element = videoMap.get(videoId);
-        if (element) break;
+      // 検索/フィルタが掛かっていると見つからないことがあるのでリセットして探す
+      const wasFiltered = searchInput.value.trim() !== "" || channelFilter.value !== "";
+      if (wasFiltered) {
+        searchInput.value = "";
+        channelFilter.value = "";
+        clearSearchBtn.style.display = "none";
+        applyFilter();
       }
+      // 該当動画が現れるまで少しずつ追加描画（無限に全件描画しないための歯止め付き）
+      let guard = 0;
+      while (!videoMap.has(videoId) && renderedCount < currentFilteredData.length && guard < 40) {
+        renderMore();
+        guard++;
+        await new Promise(r => setTimeout(r, 0));
+      }
+      element = videoMap.get(videoId);
     }
 
     if (element) {
@@ -570,7 +600,7 @@
   // ==================== プレイヤー ====================
   function playVideo(videoId, title, videoItemElement) {
     player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-    
+
     if (currentActive) currentActive.classList.remove("active");
     videoItemElement.classList.add("active");
     currentActive = videoItemElement;
@@ -601,28 +631,102 @@
     }, 1200);
   }
 
-  // ==================== フィルター ====================
-  function filterVideos() {
+  // ==================== フィルター（再描画方式） ====================
+  function applyFilter() {
     const keyword = searchInput.value.toLowerCase().trim();
     const selectedChannel = channelFilter.value;
-    let visibleCount = 0;
 
-    allVideoElements.forEach(item => {
-      const titleText = item.querySelector('.video-title').textContent.toLowerCase();
-      const channelName = item.dataset.channel || "";
-      const match = (!keyword || titleText.includes(keyword)) &&
-                    (!selectedChannel || channelName === selectedChannel);
-      item.style.display = match ? "" : "none";
-      if (match) visibleCount++;
+    currentFilteredData = videosData.filter(v => {
+      const matchKeyword = !keyword || v.title.toLowerCase().includes(keyword);
+      const matchChannel = !selectedChannel || v.channelName === selectedChannel;
+      return matchKeyword && matchChannel;
     });
+
+    // DOMをリセットして描画し直す（不要な要素を溜め込まない）
+    videosContainer.innerHTML = "";
+    videoMap.clear();
+    renderedCount = 0;
+
+    renderMore(INITIAL_RENDER_COUNT);
   }
 
-  // ==================== YouTube API（省略せず完全版） ====================
+  function filterVideos() {
+    applyFilter();
+  }
+
+  // ==================== 段階描画（Intersection Observerで自動追加） ====================
+  function createVideoElement(v) {
+    const el = document.createElement("div");
+    el.className = "video-item";
+    el.dataset.id = v.videoId;
+    el.dataset.channel = v.channelName;
+    el.innerHTML = `
+      <div class="thumbnail">
+        <img src="${v.thumbnail}" loading="lazy" alt="${v.title}">
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="video-title">
+        ${v.title}
+        <button class="later-btn">後で見る</button>
+        <button class="copy-btn">🔗</button>
+      </div>`;
+
+    el.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
+        playVideo(v.videoId, v.title, el);
+      }
+    });
+    el.querySelector('.copy-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyLink(v.videoId);
+    });
+    el.querySelector('.later-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      addToLater(v.videoId, v.title);
+    });
+
+    return el;
+  }
+
+  function renderMore(count = LOAD_MORE_COUNT) {
+    if (renderedCount >= currentFilteredData.length) {
+      if (sentinelEl.parentNode) sentinelEl.remove();
+      return;
+    }
+    const end = Math.min(renderedCount + count, currentFilteredData.length);
+    const fragment = document.createDocumentFragment();
+    for (let i = renderedCount; i < end; i++) {
+      const v = currentFilteredData[i];
+      const el = createVideoElement(v);
+      fragment.appendChild(el);
+      videoMap.set(v.videoId, el);
+    }
+    videosContainer.appendChild(fragment);
+    renderedCount = end;
+
+    // センチネルを常に最後尾に置き直す
+    if (renderedCount < currentFilteredData.length) {
+      videosContainer.appendChild(sentinelEl);
+    } else if (sentinelEl.parentNode) {
+      sentinelEl.remove();
+    }
+  }
+
+  function initInfiniteScroll() {
+    sentinelObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) renderMore();
+      });
+    }, { root: videosWrapper, rootMargin: "600px 0px" });
+    sentinelObserver.observe(sentinelEl);
+  }
+
+  // ==================== YouTube API ====================
   async function getVideoDurations(videoIds) {
     if (!videoIds.length) return {};
     const durations = {};
-    for (let i = 0; i < videoIds.length; i += 100) {
-      const batch = videoIds.slice(i, i + 100);
+    for (let i = 0; i < videoIds.length; i += 50) {
+      const batch = videoIds.slice(i, i + 50);
       try {
         const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${apiKey}`);
         if (res.ok) {
@@ -645,7 +749,8 @@
     return seconds;
   }
 
-  async function fetchAllVideosFromPlaylist(playlistId) {
+  // チャンネルごとの取得件数に上限を設け、無駄なページ取得・データ量を抑える
+  async function fetchAllVideosFromPlaylist(playlistId, maxCount = MAX_VIDEOS_PER_CHANNEL) {
     let items = [], pageToken = "";
     do {
       try {
@@ -658,67 +763,8 @@
         console.error("Playlist取得エラー", e);
         break;
       }
-    } while (pageToken);
-    return items;
-  }
-
-  // ==================== 動画レンダリング ====================
-  function renderVideosChunked(videos, startIdx = 0) {
-    const BATCH = 120;
-    const endIdx = Math.min(startIdx + BATCH, videos.length);
-   
-    let html = '';
-    for (let i = startIdx; i < endIdx; i++) {
-      const { videoId, title, thumbnail, pl } = videos[i];
-      html += `
-        <div class="video-item" data-id="${videoId}" data-channel="${pl.name}">
-          <div class="thumbnail">
-            <img src="${thumbnail}" loading="lazy" alt="${title}">
-            <div class="play-btn">▶</div>
-          </div>
-          <div class="video-title">
-            ${title}
-            <button class="later-btn">後で見る</button>
-            <button class="copy-btn">🔗</button>
-          </div>
-        </div>`;
-    }
-
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    const newElements = Array.from(tempDiv.children);
-
-    newElements.forEach(el => {
-      videosContainer.appendChild(el);
-      allVideoElements.push(el);
-      videoMap.set(el.dataset.id, el);
-    });
-
-    newElements.forEach(el => {
-      const videoId = el.dataset.id;
-      const titleText = el.querySelector('.video-title').textContent.trim();
-
-      el.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
-          playVideo(videoId, titleText, el);
-        }
-      });
-
-      el.querySelector('.copy-btn').addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        copyLink(videoId); 
-      });
-      el.querySelector('.later-btn').addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        addToLater(videoId, titleText); 
-      });
-    });
-
-    if (endIdx < videos.length) {
-      requestAnimationFrame(() => renderVideosChunked(videos, endIdx));
-    } else {
-      loadingEl.style.display = "none";
-    }
+    } while (pageToken && items.length < maxCount);
+    return items.slice(0, maxCount);
   }
 
   async function main() {
@@ -744,7 +790,6 @@
     const allVideoIds = playlistResults.flatMap(r => r.videoIds);
     const durations = await getVideoDurations(allVideoIds);
 
-    const videosData = [];
     playlistResults.forEach(({ pl, items }) => {
       items.forEach(item => {
         const rawTitle = item.snippet.title;
@@ -761,14 +806,19 @@
           videoId,
           title: `[${pl.name}] ${rawTitle}`,
           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
-          pl
+          channelName: pl.name
         });
       });
     });
 
+    loadingEl.style.display = "none";
+
     if (videosData.length) {
-      renderVideosChunked(videosData);
+      currentFilteredData = videosData;
+      renderMore(INITIAL_RENDER_COUNT);
+      initInfiniteScroll();
     } else {
+      loadingEl.style.display = "block";
       loadingEl.textContent = "動画が見つかりません";
     }
 
