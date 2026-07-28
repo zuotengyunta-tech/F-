@@ -415,8 +415,8 @@
     { name: "気ままに宗教史", id: "UUDWGVmCE8WWWjM53QTe5vGA" }
   ];
 
-  // チャンネル数が増えても重くなりにくいように、各チャンネルの取得件数に上限を設ける
-  const MAX_VIDEOS_PER_CHANNEL = 60;
+  // 1回のAPI取得件数（YouTube側の上限）
+  const FETCH_PAGE_SIZE = 50;
   // 初回に描画する件数 / スクロールで追加描画する件数（全件を一気にDOMへ入れない）
   const INITIAL_RENDER_COUNT = 45;
   const LOAD_MORE_COUNT = 30;
@@ -448,6 +448,10 @@
   let currentFilteredData = []; // 現在の検索/フィルタ条件に合う動画
   let renderedCount = 0;        // currentFilteredData のうち実際にDOM描画済みの件数
   let videoMap = new Map();     // videoId → element（描画済みのものだけ）
+
+  // チャンネルごとのページネーション状態（動画がなくなるまで際限なく追加取得する）
+  let channelStates = playlists.map(pl => ({ pl, pageToken: "", exhausted: false, started: false }));
+  let isFetchingMore = false;
 
   let cachedHistory = [];
   let cachedLater = [];
@@ -688,9 +692,33 @@
     return el;
   }
 
+  // 現在のフィルタ条件に合致する「まだ取得しきっていないチャンネル」一覧
+  function getActiveChannelStates() {
+    const selectedChannel = channelFilter.value;
+    return channelStates.filter(s => !s.exhausted && (!selectedChannel || s.pl.name === selectedChannel));
+  }
+
+  // まだ描画すべきデータがある、もしくはAPIから追加取得できる余地がある間はセンチネルを残す
+  function sentinelShouldExist() {
+    return renderedCount < currentFilteredData.length || getActiveChannelStates().length > 0;
+  }
+
+  function updateSentinelPlacement() {
+    if (sentinelShouldExist()) {
+      videosContainer.appendChild(sentinelEl);
+      observeSentinel();
+    } else if (sentinelEl.parentNode) {
+      sentinelEl.remove();
+    }
+  }
+
+  function setSentinelLoadingText(isLoading) {
+    sentinelEl.textContent = isLoading ? "読み込み中..." : "";
+  }
+
   function renderMore(count = LOAD_MORE_COUNT) {
     if (renderedCount >= currentFilteredData.length) {
-      if (sentinelEl.parentNode) sentinelEl.remove();
+      updateSentinelPlacement();
       return;
     }
     const end = Math.min(renderedCount + count, currentFilteredData.length);
@@ -703,14 +731,44 @@
     }
     videosContainer.appendChild(fragment);
     renderedCount = end;
+    updateSentinelPlacement();
+  }
 
-    // センチネルを常に最後尾に置き直す
+  // 現在のフィルタ条件に合う新規動画だけを描画済みリストの末尾へ追加（既存表示はそのまま維持）
+  function appendMatchingVideos(newVideos) {
+    if (!newVideos.length) return;
+    const keyword = searchInput.value.toLowerCase().trim();
+    const selectedChannel = channelFilter.value;
+    const matches = newVideos.filter(v => {
+      const matchKeyword = !keyword || v.title.toLowerCase().includes(keyword);
+      const matchChannel = !selectedChannel || v.channelName === selectedChannel;
+      return matchKeyword && matchChannel;
+    });
+    if (matches.length) currentFilteredData = currentFilteredData.concat(matches);
+  }
+
+  // スクロールで画面下端に到達した時の統合ハンドラ：
+  // まだ描画していない手持ちデータがあればそれを表示、無ければYouTube APIから追加取得する
+  async function handleLoadMoreTrigger() {
     if (renderedCount < currentFilteredData.length) {
-      videosContainer.appendChild(sentinelEl);
-      observeSentinel();
-    } else if (sentinelEl.parentNode) {
-      sentinelEl.remove();
+      renderMore();
+      return;
     }
+    const activeStates = getActiveChannelStates();
+    if (!activeStates.length || isFetchingMore) {
+      updateSentinelPlacement();
+      return;
+    }
+    isFetchingMore = true;
+    setSentinelLoadingText(true);
+    try {
+      const newVideos = await fetchMoreFromChannels(activeStates);
+      appendMatchingVideos(newVideos);
+    } finally {
+      isFetchingMore = false;
+      setSentinelLoadingText(false);
+    }
+    renderMore();
   }
 
   function observeSentinel() {
@@ -722,7 +780,7 @@
   function initInfiniteScroll() {
     sentinelObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) renderMore();
+        if (entry.isIntersecting) handleLoadMoreTrigger();
       });
     }, { root: videosWrapper, rootMargin: "600px 0px" });
     observeSentinel();
@@ -736,7 +794,7 @@
         scrollCheckQueued = false;
         const nearBottom = videosWrapper.scrollTop + videosWrapper.clientHeight
           >= videosWrapper.scrollHeight - 800;
-        if (nearBottom) renderMore();
+        if (nearBottom) handleLoadMoreTrigger();
       });
     });
   }
@@ -769,22 +827,66 @@
     return seconds;
   }
 
-  // チャンネルごとの取得件数に上限を設け、無駄なページ取得・データ量を抑える
-  async function fetchAllVideosFromPlaylist(playlistId, maxCount = MAX_VIDEOS_PER_CHANNEL) {
-    let items = [], pageToken = "";
-    do {
-      try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}&pageToken=${pageToken}`);
-        if (!res.ok) break;
-        const data = await res.json();
-        items = items.concat(data.items || []);
-        pageToken = data.nextPageToken;
-      } catch (e) {
-        console.error("Playlist取得エラー", e);
-        break;
-      }
-    } while (pageToken && items.length < maxCount);
-    return items.slice(0, maxCount);
+  // 1チャンネル分を1ページ（最大50件）だけ取得。もう無ければ exhausted にする
+  async function fetchChannelPage(state) {
+    if (state.exhausted) return [];
+    try {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${FETCH_PAGE_SIZE}&playlistId=${state.pl.id}&key=${apiKey}&pageToken=${state.pageToken}`);
+      if (!res.ok) { state.exhausted = true; return []; }
+      const data = await res.json();
+      state.pageToken = data.nextPageToken || "";
+      state.started = true;
+      if (!data.nextPageToken) state.exhausted = true;
+      return data.items || [];
+    } catch (e) {
+      console.error("Playlist取得エラー", e);
+      state.exhausted = true;
+      return [];
+    }
+  }
+
+  // 取得した生データを条件（長さ・ショート除外）でフィルタし、videosDataへ追加。追加分を返す
+  async function processRawItems(items, pl) {
+    if (!items.length) return [];
+    const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
+    const durations = await getVideoDurations(videoIds);
+    const added = [];
+
+    items.forEach(item => {
+      const rawTitle = item.snippet.title;
+      const videoId = item.snippet.resourceId?.videoId;
+      if (!videoId) return;
+
+      const durationSec = durations[videoId] || 0;
+      if (durationSec > 0 && durationSec <= 120) return;
+
+      const lower = rawTitle.toLowerCase();
+      if (/(short|ショート|ショーツ|#short|1分|60秒|ティック|tiktok)/.test(lower)) return;
+
+      const video = {
+        videoId,
+        title: `[${pl.name}] ${rawTitle}`,
+        thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
+        channelName: pl.name
+      };
+      videosData.push(video);
+      added.push(video);
+    });
+
+    return added;
+  }
+
+  // 対象チャンネルそれぞれから次の1ページ分を取得し、フィルタ後の新規動画をまとめて返す
+  async function fetchMoreFromChannels(states) {
+    const results = await Promise.all(
+      states.map(s => fetchChannelPage(s).then(items => ({ s, items })))
+    );
+    let newVideos = [];
+    for (const { s, items } of results) {
+      const added = await processRawItems(items, s.pl);
+      newVideos = newVideos.concat(added);
+    }
+    return newVideos;
   }
 
   async function main() {
@@ -799,37 +901,8 @@
       channelFilter.appendChild(option);
     });
 
-    const playlistResults = await Promise.all(
-      playlists.map(pl => fetchAllVideosFromPlaylist(pl.id).then(items => ({
-        pl,
-        items,
-        videoIds: items.map(item => item.snippet.resourceId?.videoId).filter(Boolean)
-      })))
-    );
-
-    const allVideoIds = playlistResults.flatMap(r => r.videoIds);
-    const durations = await getVideoDurations(allVideoIds);
-
-    playlistResults.forEach(({ pl, items }) => {
-      items.forEach(item => {
-        const rawTitle = item.snippet.title;
-        const videoId = item.snippet.resourceId?.videoId;
-        if (!videoId) return;
-
-        const durationSec = durations[videoId] || 0;
-        if (durationSec > 0 && durationSec <= 120) return;
-
-        const lower = rawTitle.toLowerCase();
-        if (/(short|ショート|ショーツ|#short|1分|60秒|ティック|tiktok)/.test(lower)) return;
-
-        videosData.push({
-          videoId,
-          title: `[${pl.name}] ${rawTitle}`,
-          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
-          channelName: pl.name
-        });
-      });
-    });
+    // 初回は各チャンネル1ページ分（最大50件）だけ取得。以降はスクロールに応じて追加取得する
+    const newVideos = await fetchMoreFromChannels(channelStates);
 
     loadingEl.style.display = "none";
 
@@ -837,9 +910,18 @@
       currentFilteredData = videosData;
       renderMore(INITIAL_RENDER_COUNT);
       initInfiniteScroll();
-    } else {
+    } else if (newVideos.length === 0 && channelStates.every(s => s.exhausted)) {
       loadingEl.style.display = "block";
       loadingEl.textContent = "動画が見つかりません";
+    } else {
+      // 初回ページに条件を満たす動画がなかった場合、追加取得できるようinfinite scrollだけ有効化しておく
+      currentFilteredData = videosData;
+      initInfiniteScroll();
+      updateSentinelPlacement();
+      if (!sentinelEl.parentNode) {
+        loadingEl.style.display = "block";
+        loadingEl.textContent = "動画が見つかりません";
+      }
     }
 
     renderHistory();
