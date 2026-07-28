@@ -707,9 +707,16 @@
     // センチネルを常に最後尾に置き直す
     if (renderedCount < currentFilteredData.length) {
       videosContainer.appendChild(sentinelEl);
+      observeSentinel();
     } else if (sentinelEl.parentNode) {
       sentinelEl.remove();
     }
+  }
+
+  function observeSentinel() {
+    if (!sentinelObserver || !sentinelEl.parentNode) return;
+    sentinelObserver.unobserve(sentinelEl);
+    sentinelObserver.observe(sentinelEl);
   }
 
   function initInfiniteScroll() {
@@ -718,7 +725,20 @@
         if (entry.isIntersecting) renderMore();
       });
     }, { root: videosWrapper, rootMargin: "600px 0px" });
-    sentinelObserver.observe(sentinelEl);
+    observeSentinel();
+
+    // IntersectionObserverが何らかの理由で発火しない環境向けの保険（スクロール監視）
+    let scrollCheckQueued = false;
+    videosWrapper.addEventListener("scroll", () => {
+      if (scrollCheckQueued) return;
+      scrollCheckQueued = true;
+      requestAnimationFrame(() => {
+        scrollCheckQueued = false;
+        const nearBottom = videosWrapper.scrollTop + videosWrapper.clientHeight
+          >= videosWrapper.scrollHeight - 800;
+        if (nearBottom) renderMore();
+      });
+    });
   }
 
   // ==================== YouTube API ====================
