@@ -8,6 +8,7 @@
       --player-width: 45%;
       --player-height: 65vh;
     }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -16,12 +17,14 @@
       background: #f8f8f8;
       overflow: hidden;
     }
+
     body {
       font-family: Arial, sans-serif;
       display: flex;
       padding: 15px 15px 15px 0;
       gap: 15px;
     }
+
     /* ==================== サイドバー ==================== */
     #sidebar {
       width: 0;
@@ -38,13 +41,18 @@
       flex-direction: column;
       contain: layout style paint;
     }
-    #sidebar.open { width: 380px; }
+
+    #sidebar.open {
+      width: 380px;
+    }
+
     .sidebar-section {
       flex: 1;
       display: flex;
       flex-direction: column;
       min-height: 0;
     }
+
     #history, #later {
       flex: 1;
       overflow-y: auto;
@@ -54,6 +62,7 @@
       scrollbar-width: thin;
       contain: strict;
     }
+
     #toggle-container {
       position: fixed;
       left: -2px;
@@ -63,6 +72,7 @@
       flex-direction: column;
       gap: 14px;
     }
+
     #toggleHistoryBtn, #toggleLaterBtn {
       width: 56px;
       height: 56px;
@@ -78,11 +88,13 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
       transition: all 0.3s ease;
     }
+
     #toggleHistoryBtn:hover, #toggleLaterBtn:hover {
       background: #000000;
       transform: scale(1.18) translateX(2px);
       box-shadow: 0 10px 22px rgba(0, 0, 0, 0.7);
     }
+
     #main {
       flex: 1;
       display: flex;
@@ -90,6 +102,7 @@
       max-width: 1400px;
       width: 100%;
     }
+
     #player-area {
       width: var(--player-width);
       height: var(--player-height);
@@ -103,8 +116,19 @@
       box-shadow: 0 5px 25px rgba(0,0,0,0.2);
       overflow: hidden;
     }
-    #player { width: 100%; height: 100%; }
-    iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    #player {
+      width: 100%;
+      height: 100%;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
     #player-horizontal-handle {
       position: absolute;
       top: 0;
@@ -115,6 +139,7 @@
       cursor: col-resize;
       z-index: 220;
     }
+
     #vertical-resize-bar {
       position: absolute;
       bottom: 0;
@@ -126,7 +151,12 @@
       z-index: 230;
       transition: background 0.2s;
     }
-    #vertical-resize-bar:hover, #vertical-resize-bar.active { background: #ff0000; }
+
+    #vertical-resize-bar:hover,
+    #vertical-resize-bar.active {
+      background: #ff0000;
+    }
+
     #resize-bar {
       width: 6px;
       background: #ddd;
@@ -136,7 +166,12 @@
       z-index: 100;
       transition: background 0.2s;
     }
-    #resize-bar:hover, #resize-bar.active { background: #ff0000; }
+
+    #resize-bar:hover,
+    #resize-bar.active {
+      background: #ff0000;
+    }
+
     #thumbnail-area {
       flex: 1;
       display: flex;
@@ -145,15 +180,18 @@
       position: relative;
       contain: layout style paint;
     }
+
     h2 {
       margin: 0 0 8px 0;
       text-align: center;
       font-size: 25px;
     }
+
     #search-container {
       margin-bottom: 18px;
       position: relative;
     }
+
     #searchInput {
       width: 100%;
       padding: 12px 40px 12px 16px;
@@ -162,7 +200,12 @@
       border-radius: 8px;
       box-sizing: border-box;
     }
-    #searchInput:focus { border-color: #ff0000; outline: none; }
+
+    #searchInput:focus {
+      border-color: #ff0000;
+      outline: none;
+    }
+
     #clearSearchBtn {
       position: absolute;
       right: 12px;
@@ -175,7 +218,11 @@
       cursor: pointer;
       display: none;
     }
-    #clearSearchBtn:hover { color: #ff0000; }
+
+    #clearSearchBtn:hover {
+      color: #ff0000;
+    }
+
     #channel-filter {
       margin-bottom: 12px;
       padding: 10px 12px;
@@ -185,7 +232,12 @@
       width: 100%;
       background: white;
     }
-    #channel-filter:focus { border-color: #ff0000; outline: none; }
+
+    #channel-filter:focus {
+      border-color: #ff0000;
+      outline: none;
+    }
+
     #videos-wrapper {
       flex: 1;
       overflow-y: auto;
@@ -194,11 +246,13 @@
       scroll-behavior: smooth;
       contain: strict;
     }
+
     #videos {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 18px;
     }
+
     .video-item {
       background: white;
       border-radius: 12px;
@@ -208,16 +262,22 @@
       position: relative;
       contain: layout style paint;
     }
-    .video-item:hover { transform: translateY(-4px); }
+
+    .video-item:hover {
+      transform: translateY(-4px);
+    }
+
     .thumbnail {
       position: relative;
       cursor: pointer;
     }
+
     .thumbnail img {
       width: 100%;
       aspect-ratio: 16 / 9;
       object-fit: cover;
     }
+
     .play-btn {
       position: absolute;
       top: 50%;
@@ -232,7 +292,11 @@
       place-items: center;
       font-size: 32px;
     }
-    .play-btn:hover { background: #ff0000; }
+
+    .play-btn:hover {
+      background: #ff0000;
+    }
+
     .video-title {
       padding: 12px;
       font-size: 14px;
@@ -244,7 +308,9 @@
       position: relative;
       min-height: 78px;
     }
-    .copy-btn, .later-btn {
+
+    .copy-btn,
+    .later-btn {
       position: absolute;
       top: 10px;
       background: rgba(0,0,0,0.85);
@@ -259,20 +325,36 @@
       transition: all 0.25s ease;
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
-    .later-btn { right: 12px; }
-    .copy-btn { right: 72px; }
+
+    .later-btn {
+      right: 12px;
+    }
+
+    .copy-btn {
+      right: 72px;
+    }
+
     .video-item:hover .copy-btn,
     .video-item:hover .later-btn {
       opacity: 1;
     }
-    .copy-btn:hover { background: #4caf50; }
-    .later-btn:hover { background: #ff9800; }
+
+    .copy-btn:hover {
+      background: #4caf50;
+    }
+
+    .later-btn:hover {
+      background: #ff9800;
+    }
+
     .active {
       outline: 4px solid #ff0000;
       outline-offset: -4px;
     }
+
     /* 履歴・後で見る */
-    .history-item, .later-item {
+    .history-item,
+    .later-item {
       padding: 11px 12px;
       margin-bottom: 8px;
       background: #f9f9f9;
@@ -287,13 +369,17 @@
       justify-content: space-between;
       align-items: center;
     }
-    .history-item:hover, .later-item:hover {
+
+    .history-item:hover,
+    .later-item:hover {
       background: #f0f0f0;
       transform: translateX(4px);
     }
+
     .later-item {
       background: #fff8e1;
     }
+
     .later-item-content {
       flex: 1;
       min-width: 0;
@@ -301,6 +387,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     .later-close-btn {
       color: #f44336;
       cursor: pointer;
@@ -310,6 +397,7 @@
       padding: 0 4px;
       user-select: none;
     }
+
     .fixed-buttons {
       position: fixed;
       right: 75px;
@@ -319,6 +407,7 @@
       gap: 12px;
       z-index: 500;
     }
+
     .fixed-btn {
       padding: 13px 26px;
       border: none;
@@ -329,30 +418,48 @@
       box-shadow: 0 6px 24px rgba(0,0,0,0.55);
       transition: all 0.2s;
     }
+
     .fixed-btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 32px rgba(0,0,0,0.6);
     }
-    #jumpBtn { background: #ff0000; }
-    #topBtn { background: #333; }
-    #loading, #loadMoreSentinel {
+
+    #jumpBtn {
+      background: #ff0000;
+    }
+
+    #topBtn {
+      background: #333;
+    }
+
+    #loading,
+    #loadMoreSentinel {
       text-align: center;
       padding: 40px 20px;
       color: #666;
       font-size: 16px;
       grid-column: 1 / -1;
     }
-    #loadMoreSentinel { padding: 20px; font-size: 13px; color: #aaa; }
+
+    #loadMoreSentinel {
+      padding: 20px;
+      font-size: 13px;
+      color: #aaa;
+    }
   </style>
 </head>
+
 <body>
+
   <!-- トグルボタン -->
   <div id="toggle-container">
     <button id="toggleHistoryBtn">›</button>
     <button id="toggleLaterBtn">›</button>
   </div>
+
   <!-- サイドバー -->
   <div id="sidebar">
+
     <div class="sidebar-section" id="historySection">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3>再生履歴</h3>
@@ -360,7 +467,9 @@
       </div>
       <div id="history"></div>
     </div>
+
     <hr style="border: none; border-top: 3px solid #eee; margin: 15px 0 25px 0;">
+
     <div class="sidebar-section" id="laterSection">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3>後で見る</h3>
@@ -368,650 +477,1716 @@
       </div>
       <div id="later"></div>
     </div>
+
   </div>
+
   <div id="main">
+
     <!-- プレイヤー -->
     <div id="player-area">
       <div id="player"></div>
       <div id="player-horizontal-handle"></div>
       <div id="vertical-resize-bar"></div>
     </div>
+
     <div id="resize-bar"></div>
+
     <!-- サムネイルエリア -->
     <div id="thumbnail-area">
+
       <h2>おすすめチャンネル集（5ch追加・2分以内＆ショート除外）</h2>
+
       <select id="channel-filter">
         <option value="">すべてのチャンネル</option>
       </select>
+
       <div id="search-container">
         <input type="text" id="searchInput" placeholder="動画タイトルで検索...">
         <button id="clearSearchBtn">×</button>
       </div>
+
       <div id="videos-wrapper">
         <div id="videos"></div>
         <div id="loading">全チャンネルを並列取得中...（高速モード）</div>
       </div>
+
     </div>
   </div>
+
   <!-- 固定ボタン -->
   <div class="fixed-buttons">
     <button id="jumpBtn" class="fixed-btn">▶ 再生中へ戻る</button>
     <button id="topBtn" class="fixed-btn">↑ サムネイル一番上に戻る</button>
   </div>
 
+
 <script>
+
   // ==================== 設定 ====================
+
   const apiKey = "AIzaSyAxk1YpQSe-qDtFUSUmnjnduanag41Mlyk";
+
   const playlists = [
+
     { name: "Fラン大学就職チャンネル", id: "UUqRV_ZIQhVKfxG1_WkNiRbg" },
+
     { name: "トレトレチャンネル", id: "UUmD3ZX3hXhihuzVRVe5o27g" },
+
     { name: "rの住人ピエロ【哲学】", id: "UUY92Ma2-tzt8LLqodw9UF0g" },
+
     { name: "RECODE - 知性OSの再定義", id: "UUxeOH32jDFcRBV1D2lh7eFQ" },
+
     { name: "Paranoia_パラノイア（クリス・ヴォス）", id: "UU0PotgTwYxbOZuM9FbWKdcg" },
+
     { name: "かもなべ塾講師チャンネル", id: "UUT3s5ZjtUhg-TDI-hDYbTyA" },
+
     { name: "パイモン大好きおじさん", id: "UUo47CdDdWB1sCtShp3KTZMQ" },
+
     { name: "気ままに宗教史", id: "UUDWGVmCE8WWWjM53QTe5vGA" },
+
     { name: "とうけい", id: "UU6I4vtYv0c4KkGbzZHZxBsg" },
+
     { name: "さくらい", id: "UU5CTV3JSdrlo5Pa42QkK8SA" },
-    { name: "かか", id: "UU1KM0FPG8NvCWKRZURZZEfQ" }
+
+    { name: "かか", id: "UU1KM0FPG8NvCWKRZURZZEfQ" },
+
+    // ★ 今回追加
+    {
+      name: "追加プレイリスト",
+      id: "PLC_sUFW5VyimOKPs1Eh36hWmcBuRHGmOy"
+    }
+
   ];
 
-  // 1回のAPI取得件数（YouTube側の上限）
+
+  // 1回のAPI取得件数
   const FETCH_PAGE_SIZE = 50;
-  // 初回に描画する件数 / スクロールで追加描画する件数（全件を一気にDOMへ入れない）
+
+  // 初回に描画する件数
   const INITIAL_RENDER_COUNT = 45;
+
+  // スクロールで追加描画する件数
   const LOAD_MORE_COUNT = 30;
+
 
   const historyKey = "multi_channel_history";
   const laterKey = "multi_channel_later";
 
+
   // ==================== DOM ====================
+
   const sidebar = document.getElementById("sidebar");
   const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
   const toggleLaterBtn = document.getElementById("toggleLaterBtn");
+
   const historyBox = document.getElementById("history");
   const laterBox = document.getElementById("later");
+
   const player = document.getElementById("player");
+
   const videosContainer = document.getElementById("videos");
   const videosWrapper = document.getElementById("videos-wrapper");
+
   const loadingEl = document.getElementById("loading");
+
   const jumpBtn = document.getElementById("jumpBtn");
   const topBtn = document.getElementById("topBtn");
+
   const searchInput = document.getElementById("searchInput");
   const clearSearchBtn = document.getElementById("clearSearchBtn");
+
   const channelFilter = document.getElementById("channel-filter");
 
+
   let currentActive = null;
+
   let isHistoryVisible = false;
   let isLaterVisible = false;
 
-  let videosData = [];          // 全動画のメタデータ（軽量、DOM化しない）
-  let currentFilteredData = []; // 現在の検索/フィルタ条件に合う動画
-  let renderedCount = 0;        // currentFilteredData のうち実際にDOM描画済みの件数
-  let videoMap = new Map();     // videoId → element（描画済みのものだけ）
 
-  // チャンネルごとのページネーション状態（動画がなくなるまで際限なく追加取得する）
-  let channelStates = playlists.map(pl => ({ pl, pageToken: "", exhausted: false, started: false }));
+  let videosData = [];
+
+  let currentFilteredData = [];
+
+  let renderedCount = 0;
+
+  let videoMap = new Map();
+
+
+  // チャンネルごとのページネーション状態
+  let channelStates = playlists.map(pl => ({
+    pl,
+    pageToken: "",
+    exhausted: false,
+    started: false
+  }));
+
   let isFetchingMore = false;
+
 
   let cachedHistory = [];
   let cachedLater = [];
 
+
   let sentinelObserver = null;
+
   const sentinelEl = document.createElement("div");
+
   sentinelEl.id = "loadMoreSentinel";
 
+
   // ==================== ストレージ ====================
+
   function loadHistoryFromStorage() {
     try {
-      cachedHistory = JSON.parse(localStorage.getItem(historyKey) || "[]");
-    } catch { cachedHistory = []; }
+      cachedHistory = JSON.parse(
+        localStorage.getItem(historyKey) || "[]"
+      );
+    } catch {
+      cachedHistory = [];
+    }
   }
+
+
   function loadLaterFromStorage() {
     try {
-      cachedLater = JSON.parse(localStorage.getItem(laterKey) || "[]");
-    } catch { cachedLater = []; }
+      cachedLater = JSON.parse(
+        localStorage.getItem(laterKey) || "[]"
+      );
+    } catch {
+      cachedLater = [];
+    }
   }
+
 
   function updateSidebar() {
-    const shouldOpen = isHistoryVisible || isLaterVisible;
+
+    const shouldOpen =
+      isHistoryVisible || isLaterVisible;
+
     sidebar.classList.toggle("open", shouldOpen);
-    toggleHistoryBtn.textContent = isHistoryVisible ? "‹" : "›";
-    toggleLaterBtn.textContent = isLaterVisible ? "‹" : "›";
-    document.getElementById("historySection").style.display = isHistoryVisible ? "flex" : "none";
-    document.getElementById("laterSection").style.display = isLaterVisible ? "flex" : "none";
+
+    toggleHistoryBtn.textContent =
+      isHistoryVisible ? "‹" : "›";
+
+    toggleLaterBtn.textContent =
+      isLaterVisible ? "‹" : "›";
+
+    document.getElementById("historySection").style.display =
+      isHistoryVisible ? "flex" : "none";
+
+    document.getElementById("laterSection").style.display =
+      isLaterVisible ? "flex" : "none";
   }
+
 
   // ==================== 履歴・後で見る ====================
+
   function toggleHistory() {
+
     isHistoryVisible = !isHistoryVisible;
+
     updateSidebar();
-    if (isHistoryVisible) renderHistory();
-  }
-  function toggleLater() {
-    isLaterVisible = !isLaterVisible;
-    updateSidebar();
-    if (isLaterVisible) renderLater();
-  }
 
-  function saveHistory(video) {
-    cachedHistory = cachedHistory.filter(item => item.id !== video.id);
-    cachedHistory.unshift(video);
-    cachedHistory = cachedHistory.slice(0, 30);
-    localStorage.setItem(historyKey, JSON.stringify(cachedHistory));
-    if (isHistoryVisible) renderHistory();
-  }
-
-  function saveLater(video) {
-    if (cachedLater.some(item => item.id === video.id)) return;
-    cachedLater.unshift(video);
-    localStorage.setItem(laterKey, JSON.stringify(cachedLater));
-    if (isLaterVisible) renderLater();
-  }
-
-  function removeLater(videoId) {
-    cachedLater = cachedLater.filter(item => item.id !== videoId);
-    localStorage.setItem(laterKey, JSON.stringify(cachedLater));
-    renderLater();
-  }
-
-  function renderHistory() {
-    historyBox.innerHTML = cachedHistory.length === 0
-      ? '<p style="color:#888; text-align:center; padding:40px 10px;">履歴はありません</p>'
-      : cachedHistory.map(item => `<div class="history-item" data-id="${item.id}">${item.title}</div>`).join('');
-  }
-
-  function renderLater() {
-    laterBox.innerHTML = cachedLater.length === 0
-      ? '<p style="color:#888; text-align:center; padding:40px 10px;">後で見るリストは空です</p>'
-      : cachedLater.map(item => `
-        <div class="later-item" data-id="${item.id}">
-          <span class="later-item-content">${item.title}</span>
-          <span class="later-close-btn">×</span>
-        </div>
-      `).join('');
-  }
-
-  // 動画を確実に探して再生する関数（未描画でも段階的に描画して探す）
-  async function playVideoById(videoId) {
-    let element = videoMap.get(videoId);
-
-    if (!element) {
-      // 検索/フィルタが掛かっていると見つからないことがあるのでリセットして探す
-      const wasFiltered = searchInput.value.trim() !== "" || channelFilter.value !== "";
-      if (wasFiltered) {
-        searchInput.value = "";
-        channelFilter.value = "";
-        clearSearchBtn.style.display = "none";
-        applyFilter();
-      }
-      // 該当動画が現れるまで少しずつ追加描画（無限に全件描画しないための歯止め付き）
-      let guard = 0;
-      while (!videoMap.has(videoId) && renderedCount < currentFilteredData.length && guard < 40) {
-        renderMore();
-        guard++;
-        await new Promise(r => setTimeout(r, 0));
-      }
-      element = videoMap.get(videoId);
-    }
-
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
-      setTimeout(() => {
-        const titleEl = element.querySelector('.video-title');
-        const title = titleEl ? titleEl.textContent.trim() : '';
-        playVideo(videoId, title, element);
-      }, 300);
-    } else {
-      alert("動画が見つかりませんでした。ページを再読み込みしてください。");
-    }
-  }
-
-  function handleHistoryClick(e) {
-    const item = e.target.closest('.history-item');
-    if (!item) return;
-    playVideoById(item.dataset.id);
-  }
-
-  function handleLaterClick(e) {
-    const closeBtn = e.target.closest('.later-close-btn');
-    const itemEl = e.target.closest('.later-item');
-    if (!itemEl) return;
-
-    if (closeBtn) {
-      e.stopImmediatePropagation();
-      removeLater(itemEl.dataset.id);
-    } else {
-      playVideoById(itemEl.dataset.id);
-    }
-  }
-
-  function clearHistory() {
-    if (confirm("再生履歴をすべて削除しますか？")) {
-      localStorage.removeItem(historyKey);
-      cachedHistory = [];
+    if (isHistoryVisible) {
       renderHistory();
     }
   }
 
-  function clearLaterList() {
-    if (confirm("後で見るリストをすべて削除しますか？")) {
-      localStorage.removeItem(laterKey);
-      cachedLater = [];
+
+  function toggleLater() {
+
+    isLaterVisible = !isLaterVisible;
+
+    updateSidebar();
+
+    if (isLaterVisible) {
       renderLater();
     }
   }
 
-  // ==================== プレイヤー ====================
-  function playVideo(videoId, title, videoItemElement) {
-    player.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
 
-    if (currentActive) currentActive.classList.remove("active");
-    videoItemElement.classList.add("active");
-    currentActive = videoItemElement;
-    saveHistory({ id: videoId, title });
+  function saveHistory(video) {
+
+    cachedHistory =
+      cachedHistory.filter(
+        item => item.id !== video.id
+      );
+
+    cachedHistory.unshift(video);
+
+    cachedHistory =
+      cachedHistory.slice(0, 30);
+
+    localStorage.setItem(
+      historyKey,
+      JSON.stringify(cachedHistory)
+    );
+
+    if (isHistoryVisible) {
+      renderHistory();
+    }
   }
 
-  function copyLink(videoId) {
-    navigator.clipboard.writeText(`https://www.youtube.com/watch?v=${videoId}`).then(() => {
-      const btn = event.currentTarget;
-      const original = btn.textContent;
-      btn.textContent = "✓ コピー";
-      btn.style.background = "#4caf50";
+
+  function saveLater(video) {
+
+    if (
+      cachedLater.some(
+        item => item.id === video.id
+      )
+    ) {
+      return;
+    }
+
+    cachedLater.unshift(video);
+
+    localStorage.setItem(
+      laterKey,
+      JSON.stringify(cachedLater)
+    );
+
+    if (isLaterVisible) {
+      renderLater();
+    }
+  }
+
+
+  function removeLater(videoId) {
+
+    cachedLater =
+      cachedLater.filter(
+        item => item.id !== videoId
+      );
+
+    localStorage.setItem(
+      laterKey,
+      JSON.stringify(cachedLater)
+    );
+
+    renderLater();
+  }
+
+
+  function renderHistory() {
+
+    historyBox.innerHTML =
+      cachedHistory.length === 0
+        ? '<p style="color:#888; text-align:center; padding:40px 10px;">履歴はありません</p>'
+        : cachedHistory
+            .map(
+              item =>
+                `<div class="history-item" data-id="${item.id}">${item.title}</div>`
+            )
+            .join("");
+  }
+
+
+  function renderLater() {
+
+    laterBox.innerHTML =
+      cachedLater.length === 0
+        ? '<p style="color:#888; text-align:center; padding:40px 10px;">後で見るリストは空です</p>'
+        : cachedLater
+            .map(
+              item => `
+                <div class="later-item" data-id="${item.id}">
+                  <span class="later-item-content">${item.title}</span>
+                  <span class="later-close-btn">×</span>
+                </div>
+              `
+            )
+            .join("");
+  }
+
+
+  // ==================== 動画検索・再生 ====================
+
+  async function playVideoById(videoId) {
+
+    let element = videoMap.get(videoId);
+
+    if (!element) {
+
+      const wasFiltered =
+        searchInput.value.trim() !== "" ||
+        channelFilter.value !== "";
+
+      if (wasFiltered) {
+
+        searchInput.value = "";
+        channelFilter.value = "";
+
+        clearSearchBtn.style.display = "none";
+
+        applyFilter();
+      }
+
+
+      let guard = 0;
+
+      while (
+        !videoMap.has(videoId) &&
+        renderedCount < currentFilteredData.length &&
+        guard < 40
+      ) {
+
+        renderMore();
+
+        guard++;
+
+        await new Promise(
+          r => setTimeout(r, 0)
+        );
+      }
+
+      element = videoMap.get(videoId);
+    }
+
+
+    if (element) {
+
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
       setTimeout(() => {
+
+        const titleEl =
+          element.querySelector(".video-title");
+
+        const title =
+          titleEl
+            ? titleEl.textContent.trim()
+            : "";
+
+        playVideo(
+          videoId,
+          title,
+          element
+        );
+
+      }, 300);
+
+    } else {
+
+      alert(
+        "動画が見つかりませんでした。ページを再読み込みしてください。"
+      );
+    }
+  }
+
+
+  function handleHistoryClick(e) {
+
+    const item =
+      e.target.closest(".history-item");
+
+    if (!item) return;
+
+    playVideoById(item.dataset.id);
+  }
+
+
+  function handleLaterClick(e) {
+
+    const closeBtn =
+      e.target.closest(".later-close-btn");
+
+    const itemEl =
+      e.target.closest(".later-item");
+
+    if (!itemEl) return;
+
+
+    if (closeBtn) {
+
+      e.stopImmediatePropagation();
+
+      removeLater(itemEl.dataset.id);
+
+    } else {
+
+      playVideoById(itemEl.dataset.id);
+    }
+  }
+
+
+  function clearHistory() {
+
+    if (
+      confirm("再生履歴をすべて削除しますか？")
+    ) {
+
+      localStorage.removeItem(historyKey);
+
+      cachedHistory = [];
+
+      renderHistory();
+    }
+  }
+
+
+  function clearLaterList() {
+
+    if (
+      confirm("再生履歴をすべて削除しますか？")
+    ) {
+
+      localStorage.removeItem(laterKey);
+
+      cachedLater = [];
+
+      renderLater();
+    }
+  }
+
+
+  // ==================== プレイヤー ====================
+
+  function playVideo(
+    videoId,
+    title,
+    videoItemElement
+  ) {
+
+    player.innerHTML =
+      `<iframe src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+
+
+    if (currentActive) {
+      currentActive.classList.remove("active");
+    }
+
+
+    videoItemElement.classList.add("active");
+
+    currentActive =
+      videoItemElement;
+
+
+    saveHistory({
+      id: videoId,
+      title
+    });
+  }
+
+
+  function copyLink(videoId) {
+
+    navigator.clipboard.writeText(
+      `https://www.youtube.com/watch?v=${videoId}`
+    ).then(() => {
+
+      const btn =
+        event.currentTarget;
+
+      const original =
+        btn.textContent;
+
+      btn.textContent = "✓ コピー";
+
+      btn.style.background = "#4caf50";
+
+
+      setTimeout(() => {
+
         btn.textContent = original;
-        btn.style.background = "rgba(0,0,0,0.85)";
+
+        btn.style.background =
+          "rgba(0,0,0,0.85)";
+
       }, 1600);
     });
   }
 
+
   function addToLater(videoId, title) {
-    saveLater({ id: videoId, title });
-    const btn = event.currentTarget;
+
+    saveLater({
+      id: videoId,
+      title
+    });
+
+
+    const btn =
+      event.currentTarget;
+
     btn.style.background = "#4caf50";
+
     btn.textContent = "✓ 追加";
+
+
     setTimeout(() => {
-      btn.style.background = "rgba(0,0,0,0.85)";
+
+      btn.style.background =
+        "rgba(0,0,0,0.85)";
+
       btn.textContent = "後で見る";
+
     }, 1200);
   }
 
-  // ==================== フィルター（再描画方式） ====================
+
+  // ==================== フィルター ====================
+
   function applyFilter() {
-    const keyword = searchInput.value.toLowerCase().trim();
-    const selectedChannel = channelFilter.value;
 
-    currentFilteredData = videosData.filter(v => {
-      const matchKeyword = !keyword || v.title.toLowerCase().includes(keyword);
-      const matchChannel = !selectedChannel || v.channelName === selectedChannel;
-      return matchKeyword && matchChannel;
-    });
+    const keyword =
+      searchInput.value
+        .toLowerCase()
+        .trim();
 
-    // DOMをリセットして描画し直す（不要な要素を溜め込まない）
+    const selectedChannel =
+      channelFilter.value;
+
+
+    currentFilteredData =
+      videosData.filter(v => {
+
+        const matchKeyword =
+          !keyword ||
+          v.title
+            .toLowerCase()
+            .includes(keyword);
+
+        const matchChannel =
+          !selectedChannel ||
+          v.channelName === selectedChannel;
+
+        return (
+          matchKeyword &&
+          matchChannel
+        );
+      });
+
+
     videosContainer.innerHTML = "";
+
     videoMap.clear();
+
     renderedCount = 0;
 
-    renderMore(INITIAL_RENDER_COUNT);
+
+    renderMore(
+      INITIAL_RENDER_COUNT
+    );
   }
+
 
   function filterVideos() {
     applyFilter();
   }
 
-  // ==================== 段階描画（Intersection Observerで自動追加） ====================
+
+  // ==================== 段階描画 ====================
+
   function createVideoElement(v) {
-    const el = document.createElement("div");
-    el.className = "video-item";
-    el.dataset.id = v.videoId;
-    el.dataset.channel = v.channelName;
+
+    const el =
+      document.createElement("div");
+
+    el.className =
+      "video-item";
+
+    el.dataset.id =
+      v.videoId;
+
+    el.dataset.channel =
+      v.channelName;
+
+
     el.innerHTML = `
       <div class="thumbnail">
         <img src="${v.thumbnail}" loading="lazy" alt="${v.title}">
         <div class="play-btn">▶</div>
       </div>
+
       <div class="video-title">
         ${v.title}
-        <button class="later-btn">後で見る</button>
-        <button class="copy-btn">🔗</button>
-      </div>`;
 
-    el.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('copy-btn') && !e.target.classList.contains('later-btn')) {
-        playVideo(v.videoId, v.title, el);
+        <button class="later-btn">
+          後で見る
+        </button>
+
+        <button class="copy-btn">
+          🔗
+        </button>
+      </div>
+    `;
+
+
+    el.addEventListener(
+      "click",
+      e => {
+
+        if (
+          !e.target.classList.contains("copy-btn") &&
+          !e.target.classList.contains("later-btn")
+        ) {
+
+          playVideo(
+            v.videoId,
+            v.title,
+            el
+          );
+        }
       }
-    });
-    el.querySelector('.copy-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      copyLink(v.videoId);
-    });
-    el.querySelector('.later-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      addToLater(v.videoId, v.title);
-    });
+    );
+
+
+    el.querySelector(".copy-btn")
+      .addEventListener(
+        "click",
+        e => {
+
+          e.stopPropagation();
+
+          copyLink(v.videoId);
+        }
+      );
+
+
+    el.querySelector(".later-btn")
+      .addEventListener(
+        "click",
+        e => {
+
+          e.stopPropagation();
+
+          addToLater(
+            v.videoId,
+            v.title
+          );
+        }
+      );
+
 
     return el;
   }
 
-  // 現在のフィルタ条件に合致する「まだ取得しきっていないチャンネル」一覧
+
   function getActiveChannelStates() {
-    const selectedChannel = channelFilter.value;
-    return channelStates.filter(s => !s.exhausted && (!selectedChannel || s.pl.name === selectedChannel));
+
+    const selectedChannel =
+      channelFilter.value;
+
+    return channelStates.filter(
+      s =>
+        !s.exhausted &&
+        (
+          !selectedChannel ||
+          s.pl.name === selectedChannel
+        )
+    );
   }
 
-  // まだ描画すべきデータがある、もしくはAPIから追加取得できる余地がある間はセンチネルを残す
+
   function sentinelShouldExist() {
-    return renderedCount < currentFilteredData.length || getActiveChannelStates().length > 0;
+
+    return (
+      renderedCount <
+        currentFilteredData.length ||
+      getActiveChannelStates().length > 0
+    );
   }
+
 
   function updateSentinelPlacement() {
+
     if (sentinelShouldExist()) {
-      videosContainer.appendChild(sentinelEl);
+
+      videosContainer.appendChild(
+        sentinelEl
+      );
+
       observeSentinel();
-    } else if (sentinelEl.parentNode) {
+
+    } else if (
+      sentinelEl.parentNode
+    ) {
+
       sentinelEl.remove();
     }
   }
 
-  function setSentinelLoadingText(isLoading) {
-    sentinelEl.textContent = isLoading ? "読み込み中..." : "";
+
+  function setSentinelLoadingText(
+    isLoading
+  ) {
+
+    sentinelEl.textContent =
+      isLoading
+        ? "読み込み中..."
+        : "";
   }
 
-  function renderMore(count = LOAD_MORE_COUNT) {
-    if (renderedCount >= currentFilteredData.length) {
+
+  function renderMore(
+    count = LOAD_MORE_COUNT
+  ) {
+
+    if (
+      renderedCount >=
+      currentFilteredData.length
+    ) {
+
       updateSentinelPlacement();
+
       return;
     }
-    const end = Math.min(renderedCount + count, currentFilteredData.length);
-    const fragment = document.createDocumentFragment();
-    for (let i = renderedCount; i < end; i++) {
-      const v = currentFilteredData[i];
-      const el = createVideoElement(v);
+
+
+    const end =
+      Math.min(
+        renderedCount + count,
+        currentFilteredData.length
+      );
+
+
+    const fragment =
+      document.createDocumentFragment();
+
+
+    for (
+      let i = renderedCount;
+      i < end;
+      i++
+    ) {
+
+      const v =
+        currentFilteredData[i];
+
+      const el =
+        createVideoElement(v);
+
       fragment.appendChild(el);
-      videoMap.set(v.videoId, el);
+
+      videoMap.set(
+        v.videoId,
+        el
+      );
     }
-    videosContainer.appendChild(fragment);
+
+
+    videosContainer.appendChild(
+      fragment
+    );
+
     renderedCount = end;
+
     updateSentinelPlacement();
   }
 
-  // 現在のフィルタ条件に合う新規動画だけを描画済みリストの末尾へ追加（既存表示はそのまま維持）
-  function appendMatchingVideos(newVideos) {
+
+  function appendMatchingVideos(
+    newVideos
+  ) {
+
     if (!newVideos.length) return;
-    const keyword = searchInput.value.toLowerCase().trim();
-    const selectedChannel = channelFilter.value;
-    const matches = newVideos.filter(v => {
-      const matchKeyword = !keyword || v.title.toLowerCase().includes(keyword);
-      const matchChannel = !selectedChannel || v.channelName === selectedChannel;
-      return matchKeyword && matchChannel;
-    });
-    if (matches.length) currentFilteredData = currentFilteredData.concat(matches);
+
+
+    const keyword =
+      searchInput.value
+        .toLowerCase()
+        .trim();
+
+    const selectedChannel =
+      channelFilter.value;
+
+
+    const matches =
+      newVideos.filter(v => {
+
+        const matchKeyword =
+          !keyword ||
+          v.title
+            .toLowerCase()
+            .includes(keyword);
+
+        const matchChannel =
+          !selectedChannel ||
+          v.channelName === selectedChannel;
+
+        return (
+          matchKeyword &&
+          matchChannel
+        );
+      });
+
+
+    if (matches.length) {
+
+      currentFilteredData =
+        currentFilteredData.concat(
+          matches
+        );
+    }
   }
 
-  // スクロールで画面下端に到達した時の統合ハンドラ：
-  // まだ描画していない手持ちデータがあればそれを表示、無ければYouTube APIから追加取得する
+
+  // ==================== 無限スクロール ====================
+
   async function handleLoadMoreTrigger() {
-    if (renderedCount < currentFilteredData.length) {
+
+    if (
+      renderedCount <
+      currentFilteredData.length
+    ) {
+
       renderMore();
+
       return;
     }
-    const activeStates = getActiveChannelStates();
-    if (!activeStates.length || isFetchingMore) {
+
+
+    const activeStates =
+      getActiveChannelStates();
+
+
+    if (
+      !activeStates.length ||
+      isFetchingMore
+    ) {
+
       updateSentinelPlacement();
+
       return;
     }
+
+
     isFetchingMore = true;
+
     setSentinelLoadingText(true);
+
+
     try {
-      const newVideos = await fetchMoreFromChannels(activeStates);
-      appendMatchingVideos(newVideos);
+
+      const newVideos =
+        await fetchMoreFromChannels(
+          activeStates
+        );
+
+      appendMatchingVideos(
+        newVideos
+      );
+
     } finally {
+
       isFetchingMore = false;
+
       setSentinelLoadingText(false);
     }
+
+
     renderMore();
   }
 
+
   function observeSentinel() {
-    if (!sentinelObserver || !sentinelEl.parentNode) return;
-    sentinelObserver.unobserve(sentinelEl);
-    sentinelObserver.observe(sentinelEl);
+
+    if (
+      !sentinelObserver ||
+      !sentinelEl.parentNode
+    ) {
+      return;
+    }
+
+
+    sentinelObserver.unobserve(
+      sentinelEl
+    );
+
+    sentinelObserver.observe(
+      sentinelEl
+    );
   }
+
 
   function initInfiniteScroll() {
-    sentinelObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) handleLoadMoreTrigger();
-      });
-    }, { root: videosWrapper, rootMargin: "600px 0px" });
+
+    sentinelObserver =
+      new IntersectionObserver(
+        entries => {
+
+          entries.forEach(
+            entry => {
+
+              if (
+                entry.isIntersecting
+              ) {
+
+                handleLoadMoreTrigger();
+              }
+            }
+          );
+        },
+        {
+          root: videosWrapper,
+          rootMargin: "600px 0px"
+        }
+      );
+
+
     observeSentinel();
 
-    // IntersectionObserverが何らかの理由で発火しない環境向けの保険（スクロール監視）
-    let scrollCheckQueued = false;
-    videosWrapper.addEventListener("scroll", () => {
-      if (scrollCheckQueued) return;
-      scrollCheckQueued = true;
-      requestAnimationFrame(() => {
-        scrollCheckQueued = false;
-        const nearBottom = videosWrapper.scrollTop + videosWrapper.clientHeight
-          >= videosWrapper.scrollHeight - 800;
-        if (nearBottom) handleLoadMoreTrigger();
-      });
-    });
+
+    let scrollCheckQueued =
+      false;
+
+
+    videosWrapper.addEventListener(
+      "scroll",
+      () => {
+
+        if (scrollCheckQueued) {
+          return;
+        }
+
+
+        scrollCheckQueued = true;
+
+
+        requestAnimationFrame(() => {
+
+          scrollCheckQueued = false;
+
+
+          const nearBottom =
+            videosWrapper.scrollTop +
+            videosWrapper.clientHeight >=
+            videosWrapper.scrollHeight -
+            800;
+
+
+          if (nearBottom) {
+
+            handleLoadMoreTrigger();
+          }
+        });
+      }
+    );
   }
 
+
   // ==================== YouTube API ====================
-  async function getVideoDurations(videoIds) {
-    if (!videoIds.length) return {};
-    const durations = {};
-    for (let i = 0; i < videoIds.length; i += 50) {
-      const batch = videoIds.slice(i, i + 50);
-      try {
-        const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${apiKey}`);
-        if (res.ok) {
-          const data = await res.json();
-          data.items?.forEach(item => {
-            durations[item.id] = parseISO8601Duration(item.contentDetails.duration);
-          });
-        }
-      } catch (e) { console.warn("Duration fetch error", e); }
+
+  async function getVideoDurations(
+    videoIds
+  ) {
+
+    if (!videoIds.length) {
+      return {};
     }
+
+
+    const durations = {};
+
+
+    for (
+      let i = 0;
+      i < videoIds.length;
+      i += 50
+    ) {
+
+      const batch =
+        videoIds.slice(
+          i,
+          i + 50
+        );
+
+
+      try {
+
+        const res =
+          await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(",")}&key=${apiKey}`
+          );
+
+
+        if (res.ok) {
+
+          const data =
+            await res.json();
+
+
+          data.items?.forEach(
+            item => {
+
+              durations[item.id] =
+                parseISO8601Duration(
+                  item.contentDetails.duration
+                );
+            }
+          );
+        }
+
+      } catch (e) {
+
+        console.warn(
+          "Duration fetch error",
+          e
+        );
+      }
+    }
+
+
     return durations;
   }
 
-  function parseISO8601Duration(duration) {
-    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+
+  function parseISO8601Duration(
+    duration
+  ) {
+
+    const match =
+      duration.match(
+        /PT(\d+H)?(\d+M)?(\d+S)?/
+      );
+
+
     let seconds = 0;
-    if (match[1]) seconds += parseInt(match[1]) * 3600;
-    if (match[2]) seconds += parseInt(match[2]) * 60;
-    if (match[3]) seconds += parseInt(match[3]);
+
+
+    if (match[1]) {
+
+      seconds +=
+        parseInt(match[1]) * 3600;
+    }
+
+
+    if (match[2]) {
+
+      seconds +=
+        parseInt(match[2]) * 60;
+    }
+
+
+    if (match[3]) {
+
+      seconds +=
+        parseInt(match[3]);
+    }
+
+
     return seconds;
   }
 
-  // 1チャンネル分を1ページ（最大50件）だけ取得。もう無ければ exhausted にする
-  async function fetchChannelPage(state) {
-    if (state.exhausted) return [];
+
+  // ==================== プレイリスト取得 ====================
+
+  async function fetchChannelPage(
+    state
+  ) {
+
+    if (state.exhausted) {
+      return [];
+    }
+
+
     try {
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${FETCH_PAGE_SIZE}&playlistId=${state.pl.id}&key=${apiKey}&pageToken=${state.pageToken}`);
-      if (!res.ok) { state.exhausted = true; return []; }
-      const data = await res.json();
-      state.pageToken = data.nextPageToken || "";
+
+      const res =
+        await fetch(
+          `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${FETCH_PAGE_SIZE}&playlistId=${state.pl.id}&key=${apiKey}&pageToken=${state.pageToken}`
+        );
+
+
+      if (!res.ok) {
+
+        state.exhausted = true;
+
+        return [];
+      }
+
+
+      const data =
+        await res.json();
+
+
+      state.pageToken =
+        data.nextPageToken || "";
+
+
       state.started = true;
-      if (!data.nextPageToken) state.exhausted = true;
+
+
+      if (!data.nextPageToken) {
+
+        state.exhausted = true;
+      }
+
+
       return data.items || [];
+
+
     } catch (e) {
-      console.error("Playlist取得エラー", e);
+
+      console.error(
+        "Playlist取得エラー",
+        e
+      );
+
       state.exhausted = true;
+
       return [];
     }
   }
 
-  // 取得した生データを条件（長さ・ショート除外）でフィルタし、videosDataへ追加。追加分を返す
-  async function processRawItems(items, pl) {
-    if (!items.length) return [];
-    const videoIds = items.map(item => item.snippet.resourceId?.videoId).filter(Boolean);
-    const durations = await getVideoDurations(videoIds);
+
+  // ==================== 動画フィルター処理 ====================
+
+  async function processRawItems(
+    items,
+    pl
+  ) {
+
+    if (!items.length) {
+      return [];
+    }
+
+
+    const videoIds =
+      items
+        .map(
+          item =>
+            item.snippet
+              .resourceId
+              ?.videoId
+        )
+        .filter(Boolean);
+
+
+    const durations =
+      await getVideoDurations(
+        videoIds
+      );
+
+
     const added = [];
 
+
     items.forEach(item => {
-      const rawTitle = item.snippet.title;
-      const videoId = item.snippet.resourceId?.videoId;
-      if (!videoId) return;
 
-      const durationSec = durations[videoId] || 0;
-      if (durationSec > 0 && durationSec <= 120) return;
+      const rawTitle =
+        item.snippet.title;
 
-      const lower = rawTitle.toLowerCase();
-      if (/(short|ショート|ショーツ|#short|1分|60秒|ティック|tiktok)/.test(lower)) return;
+      const videoId =
+        item.snippet
+          .resourceId
+          ?.videoId;
+
+
+      if (!videoId) {
+        return;
+      }
+
+
+      const durationSec =
+        durations[videoId] || 0;
+
+
+      // 2分以内を除外
+      if (
+        durationSec > 0 &&
+        durationSec <= 120
+      ) {
+        return;
+      }
+
+
+      const lower =
+        rawTitle.toLowerCase();
+
+
+      // ショート系を除外
+      if (
+        /(short|ショート|ショーツ|#short|1分|60秒|ティック|tiktok)/
+          .test(lower)
+      ) {
+        return;
+      }
+
 
       const video = {
+
         videoId,
-        title: `[${pl.name}] ${rawTitle}`,
-        thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || "",
-        channelName: pl.name
+
+        title:
+          `[${pl.name}] ${rawTitle}`,
+
+        thumbnail:
+          item.snippet
+            .thumbnails
+            ?.medium
+            ?.url ||
+          item.snippet
+            .thumbnails
+            ?.default
+            ?.url ||
+          "",
+
+        channelName:
+          pl.name
       };
+
+
       videosData.push(video);
+
       added.push(video);
     });
+
 
     return added;
   }
 
-  // 対象チャンネルそれぞれから次の1ページ分を取得し、フィルタ後の新規動画をまとめて返す
-  async function fetchMoreFromChannels(states) {
-    const results = await Promise.all(
-      states.map(s => fetchChannelPage(s).then(items => ({ s, items })))
-    );
+
+  // ==================== 各プレイリストから取得 ====================
+
+  async function fetchMoreFromChannels(
+    states
+  ) {
+
+    const results =
+      await Promise.all(
+
+        states.map(
+          s =>
+            fetchChannelPage(s)
+              .then(
+                items => ({
+                  s,
+                  items
+                })
+              )
+        )
+      );
+
+
     let newVideos = [];
-    for (const { s, items } of results) {
-      const added = await processRawItems(items, s.pl);
-      newVideos = newVideos.concat(added);
+
+
+    for (
+      const { s, items }
+      of results
+    ) {
+
+      const added =
+        await processRawItems(
+          items,
+          s.pl
+        );
+
+
+      newVideos =
+        newVideos.concat(
+          added
+        );
     }
+
+
     return newVideos;
   }
 
+
+  // ==================== メイン ====================
+
   async function main() {
-    loadingEl.textContent = "チャンネル取得中...（高速並列モード）";
+
+    loadingEl.textContent =
+      "チャンネル取得中...（高速並列モード）";
+
+
     loadHistoryFromStorage();
+
     loadLaterFromStorage();
 
+
+    // チャンネル・プレイリスト選択欄を作成
     playlists.forEach(pl => {
-      const option = document.createElement("option");
-      option.value = pl.name;
-      option.textContent = pl.name;
-      channelFilter.appendChild(option);
+
+      const option =
+        document.createElement("option");
+
+      option.value =
+        pl.name;
+
+      option.textContent =
+        pl.name;
+
+      channelFilter.appendChild(
+        option
+      );
     });
 
-    // 初回は各チャンネル1ページ分（最大50件）だけ取得。以降はスクロールに応じて追加取得する
-    const newVideos = await fetchMoreFromChannels(channelStates);
 
-    loadingEl.style.display = "none";
+    // 初回は全プレイリストから1ページ取得
+    const newVideos =
+      await fetchMoreFromChannels(
+        channelStates
+      );
+
+
+    loadingEl.style.display =
+      "none";
+
 
     if (videosData.length) {
-      currentFilteredData = videosData;
-      renderMore(INITIAL_RENDER_COUNT);
+
+      currentFilteredData =
+        videosData;
+
+      renderMore(
+        INITIAL_RENDER_COUNT
+      );
+
       initInfiniteScroll();
-    } else if (newVideos.length === 0 && channelStates.every(s => s.exhausted)) {
-      loadingEl.style.display = "block";
-      loadingEl.textContent = "動画が見つかりません";
+
+
+    } else if (
+      newVideos.length === 0 &&
+      channelStates.every(
+        s => s.exhausted
+      )
+    ) {
+
+      loadingEl.style.display =
+        "block";
+
+      loadingEl.textContent =
+        "動画が見つかりません";
+
+
     } else {
-      // 初回ページに条件を満たす動画がなかった場合、追加取得できるようinfinite scrollだけ有効化しておく
-      currentFilteredData = videosData;
+
+      currentFilteredData =
+        videosData;
+
       initInfiniteScroll();
+
       updateSentinelPlacement();
+
+
       if (!sentinelEl.parentNode) {
-        loadingEl.style.display = "block";
-        loadingEl.textContent = "動画が見つかりません";
+
+        loadingEl.style.display =
+          "block";
+
+        loadingEl.textContent =
+          "動画が見つかりません";
       }
     }
 
+
     renderHistory();
+
     renderLater();
+
     updateSidebar();
 
-    // イベント
-    channelFilter.addEventListener("change", filterVideos);
-    searchInput.addEventListener("input", () => {
-      filterVideos();
-      clearSearchBtn.style.display = searchInput.value ? "block" : "none";
-    });
-    clearSearchBtn.addEventListener("click", () => {
-      searchInput.value = "";
-      filterVideos();
-      clearSearchBtn.style.display = "none";
-    });
 
-    // サイドバークリック
-    historyBox.addEventListener('click', handleHistoryClick);
-    laterBox.addEventListener('click', handleLaterClick);
+    // ==================== イベント ====================
+
+    channelFilter.addEventListener(
+      "change",
+      filterVideos
+    );
+
+
+    searchInput.addEventListener(
+      "input",
+      () => {
+
+        filterVideos();
+
+        clearSearchBtn.style.display =
+          searchInput.value
+            ? "block"
+            : "none";
+      }
+    );
+
+
+    clearSearchBtn.addEventListener(
+      "click",
+      () => {
+
+        searchInput.value = "";
+
+        filterVideos();
+
+        clearSearchBtn.style.display =
+          "none";
+      }
+    );
+
+
+    // サイドバー
+    historyBox.addEventListener(
+      "click",
+      handleHistoryClick
+    );
+
+    laterBox.addEventListener(
+      "click",
+      handleLaterClick
+    );
   }
 
-  // 固定ボタン
-  jumpBtn.addEventListener("click", () => currentActive && currentActive.scrollIntoView({ behavior: "smooth", block: "center" }));
-  topBtn.addEventListener("click", () => document.getElementById("videos-wrapper").scrollTo({ top: 0, behavior: "smooth" }));
-  toggleHistoryBtn.addEventListener("click", toggleHistory);
-  toggleLaterBtn.addEventListener("click", toggleLater);
-  document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
-  document.getElementById("clearLaterBtn").addEventListener("click", clearLaterList);
 
-  // リサイズ機能（省略せず完全）
+  // ==================== 固定ボタン ====================
+
+  jumpBtn.addEventListener(
+    "click",
+    () =>
+      currentActive &&
+      currentActive.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      })
+  );
+
+
+  topBtn.addEventListener(
+    "click",
+    () =>
+      document
+        .getElementById("videos-wrapper")
+        .scrollTo({
+          top: 0,
+          behavior: "smooth"
+        })
+  );
+
+
+  toggleHistoryBtn.addEventListener(
+    "click",
+    toggleHistory
+  );
+
+
+  toggleLaterBtn.addEventListener(
+    "click",
+    toggleLater
+  );
+
+
+  document
+    .getElementById("clearHistoryBtn")
+    .addEventListener(
+      "click",
+      clearHistory
+    );
+
+
+  document
+    .getElementById("clearLaterBtn")
+    .addEventListener(
+      "click",
+      clearLaterList
+    );
+
+
+  // ==================== リサイズ機能 ====================
+
   function initResize() {
-    const resizeBar = document.getElementById("resize-bar");
-    const playerHorizontalHandle = document.getElementById("player-horizontal-handle");
-    const verticalResizeBar = document.getElementById("vertical-resize-bar");
-    const playerArea = document.getElementById("player-area");
-    let isResizingHorizontal = false, isResizingVertical = false;
 
-    const startHorizontal = (e) => {
-      isResizingHorizontal = true;
-      resizeBar.classList.add("active");
-      playerHorizontalHandle.style.background = "rgba(255,0,0,0.3)";
-      document.body.style.cursor = "col-resize";
-      e.preventDefault();
-    };
+    const resizeBar =
+      document.getElementById(
+        "resize-bar"
+      );
 
-    resizeBar.addEventListener("mousedown", startHorizontal);
-    playerHorizontalHandle.addEventListener("mousedown", startHorizontal);
+    const playerHorizontalHandle =
+      document.getElementById(
+        "player-horizontal-handle"
+      );
 
-    verticalResizeBar.addEventListener("mousedown", (e) => {
-      isResizingVertical = true;
-      verticalResizeBar.classList.add("active");
-      document.body.style.cursor = "row-resize";
-      e.preventDefault();
-    });
+    const verticalResizeBar =
+      document.getElementById(
+        "vertical-resize-bar"
+      );
 
-    document.addEventListener("mousemove", (e) => {
-      if (isResizingHorizontal) {
-        const mainRect = document.getElementById("main").getBoundingClientRect();
-        let newWidth = ((e.clientX - mainRect.left) / mainRect.width) * 100;
-        newWidth = Math.max(25, Math.min(70, newWidth));
-        document.documentElement.style.setProperty("--player-width", newWidth + "%");
+    const playerArea =
+      document.getElementById(
+        "player-area"
+      );
+
+
+    let isResizingHorizontal =
+      false;
+
+    let isResizingVertical =
+      false;
+
+
+    const startHorizontal =
+      e => {
+
+        isResizingHorizontal =
+          true;
+
+        resizeBar.classList.add(
+          "active"
+        );
+
+        playerHorizontalHandle.style.background =
+          "rgba(255,0,0,0.3)";
+
+        document.body.style.cursor =
+          "col-resize";
+
+        e.preventDefault();
+      };
+
+
+    resizeBar.addEventListener(
+      "mousedown",
+      startHorizontal
+    );
+
+
+    playerHorizontalHandle.addEventListener(
+      "mousedown",
+      startHorizontal
+    );
+
+
+    verticalResizeBar.addEventListener(
+      "mousedown",
+      e => {
+
+        isResizingVertical =
+          true;
+
+        verticalResizeBar.classList.add(
+          "active"
+        );
+
+        document.body.style.cursor =
+          "row-resize";
+
+        e.preventDefault();
       }
-      if (isResizingVertical) {
-        const playerRect = playerArea.getBoundingClientRect();
-        let newHeightPx = e.clientY - playerRect.top;
-        newHeightPx = Math.max(280, Math.min(window.innerHeight * 0.95, newHeightPx));
-        document.documentElement.style.setProperty("--player-height", (newHeightPx / window.innerHeight * 100) + "vh");
-      }
-    });
+    );
 
-    document.addEventListener("mouseup", () => {
-      if (isResizingHorizontal) {
-        isResizingHorizontal = false;
-        resizeBar.classList.remove("active");
-        playerHorizontalHandle.style.background = "transparent";
-        document.body.style.cursor = "default";
+
+    document.addEventListener(
+      "mousemove",
+      e => {
+
+        if (isResizingHorizontal) {
+
+          const mainRect =
+            document
+              .getElementById("main")
+              .getBoundingClientRect();
+
+
+          let newWidth =
+            (
+              (e.clientX -
+                mainRect.left) /
+              mainRect.width
+            ) * 100;
+
+
+          newWidth =
+            Math.max(
+              25,
+              Math.min(
+                70,
+                newWidth
+              )
+            );
+
+
+          document.documentElement.style.setProperty(
+            "--player-width",
+            newWidth + "%"
+          );
+        }
+
+
+        if (isResizingVertical) {
+
+          const playerRect =
+            playerArea.getBoundingClientRect();
+
+
+          let newHeightPx =
+            e.clientY -
+            playerRect.top;
+
+
+          newHeightPx =
+            Math.max(
+              280,
+              Math.min(
+                window.innerHeight * 0.95,
+                newHeightPx
+              )
+            );
+
+
+          document.documentElement.style.setProperty(
+            "--player-height",
+            (
+              newHeightPx /
+              window.innerHeight *
+              100
+            ) + "vh"
+          );
+        }
       }
-      if (isResizingVertical) {
-        isResizingVertical = false;
-        verticalResizeBar.classList.remove("active");
-        document.body.style.cursor = "default";
+    );
+
+
+    document.addEventListener(
+      "mouseup",
+      () => {
+
+        if (isResizingHorizontal) {
+
+          isResizingHorizontal =
+            false;
+
+          resizeBar.classList.remove(
+            "active"
+          );
+
+          playerHorizontalHandle.style.background =
+            "transparent";
+
+          document.body.style.cursor =
+            "default";
+        }
+
+
+        if (isResizingVertical) {
+
+          isResizingVertical =
+            false;
+
+          verticalResizeBar.classList.remove(
+            "active"
+          );
+
+          document.body.style.cursor =
+            "default";
+        }
       }
-    });
+    );
   }
+
+
+  // ==================== 起動 ====================
 
   initResize();
+
   main();
+
 </script>
+
 </body>
 </html>
